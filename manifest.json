@@ -1,15 +1,16 @@
 {
-  "name": "Mobile Driving Game",
-  "short_name": "Drive 3D",
-  "start_url": "./",
-  "display": "fullscreen",
-  "background_color": "#87CEEB",
-  "theme_color": "#ff5722",
+  "name": "Urban Drift 3D",
+  "short_name": "Urban Drift",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#001122",
+  "theme_color": "#00e5ff",
   "icons": [
     {
       "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Icon-car.svg/512px-Icon-car.svg.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
