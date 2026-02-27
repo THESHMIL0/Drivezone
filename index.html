@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    <title>Urban Drift AAA</title>
+    <title>Alive City Drift</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; }
         
@@ -49,20 +49,11 @@
     </div>
     <div id="startScreen">
         <h1 style="font-size: 50px; margin: 0; color: #fff; text-shadow: 0 0 20px #00e5ff, 0 0 40px #0072ff; font-style: italic;">URBAN DRIFT</h1>
-        <p style="color: #aaa; font-size: 18px; margin-bottom: 30px;">AAA Mobile Experience</p>
+        <p style="color: #aaa; font-size: 18px; margin-bottom: 30px;">Living City Update</p>
         <button id="startBtn">START ENGINE</button>
     </div>
     
     <div id="settingsBtn">⚙️</div>
-    <div id="settingsMenu" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 30px; border-radius: 15px; border: 3px solid #00e5ff; z-index: 200; text-align: center; color: white;">
-        <h2 style="margin-top:0;">Settings</h2>
-        <button id="installBtn" style="display:none; background: #28a745; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(40,167,69,0.5);">📲 Install to Phone</button>
-        <p id="manualInstallText" style="font-size: 14px; color: #aaa; background: #222; padding: 10px; border-radius: 8px;">
-            If button is hidden, tap your browser's <b>Menu (⋮)</b> and tap<br><b style="color:#00e5ff;">"Add to Home screen"</b> to install natively!
-        </p>
-        <button id="closeSettings" style="background: #dc3545; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer;">Close</button>
-    </div>
-
     <div id="controls">
         <div id="steeringArea"><div id="steeringWheel"><div class="horn-center"></div></div></div>
         <div class="pedals">
@@ -74,13 +65,6 @@
 
     <script type="module">
         import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
-
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-        let deferredPrompt; const installBtn = document.getElementById('installBtn');
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'inline-block'; document.getElementById('manualInstallText').style.display = 'none'; });
-        installBtn.addEventListener('click', async () => { if(deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if(outcome === 'accepted') installBtn.style.display = 'none'; deferredPrompt = null; } });
-        document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'block');
-        document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'none');
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x7ec0ee); 
@@ -98,7 +82,7 @@
         sunLight.position.set(100, 150, -50); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048; 
         const d = 120; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
-        sunLight.shadow.bias = -0.0005; scene.add(sunLight);// --- CRISP TEXTURES ---
+        sunLight.shadow.bias = -0.0005; scene.add(sunLight);        // --- TEXTURES ---
         function createRoadTexture() {
             const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
             const ctx = canvas.getContext('2d'); ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, 512, 512); 
@@ -115,12 +99,12 @@
         const roadTexture = createRoadTexture(); roadTexture.repeat.set(40, 40);
         const windowTexture = createWindowTexture(); windowTexture.repeat.set(2, 4);
 
-        // --- SILVER SPORTS CAR ---
+        // --- PLAYER CAR ---
         const car = new THREE.Group();
         const chassis = new THREE.Group(); 
-        const silverPaint = new THREE.MeshPhysicalMaterial({ color: 0xdddddd, metalness: 0.7, roughness: 0.2, clearcoat: 1.0, clearcoatRoughness: 0.1 });
+        const silverPaint = new THREE.MeshPhysicalMaterial({ color: 0xdddddd, metalness: 0.7, roughness: 0.2, clearcoat: 1.0 });
         const blueStripeMat = new THREE.MeshPhysicalMaterial({ color: 0x0044ff, metalness: 0.5, roughness: 0.3, clearcoat: 1.0 });
-        const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x000000, metalness: 0.9, roughness: 0.0, transmission: 0.8, transparent: true, opacity: 1 });
+        const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x000000, metalness: 0.9, roughness: 0.0, transmission: 0.8, transparent: true });
         
         const body = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.5, 4.6), silverPaint); body.position.y = 0.5; body.castShadow = true; chassis.add(body);
         const stripe1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.52, 4.61), blueStripeMat); stripe1.position.set(-0.35, 0.5, 0); chassis.add(stripe1);
@@ -134,11 +118,9 @@
         window.headLightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xddffff, emissiveIntensity: 2 });
         const hlLeft = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.1), window.headLightMat); hlLeft.position.set(-0.7, 0.55, 2.3); chassis.add(hlLeft);
         const hlRight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.1), window.headLightMat); hlRight.position.set(0.7, 0.55, 2.3); chassis.add(hlRight);
-        
-        const carLight = new THREE.SpotLight(0xffffee, 2); carLight.position.set(0, 1, 3); carLight.target.position.set(0, 0, 20); carLight.angle = Math.PI/4; carLight.penumbra = 0.5; chassis.add(carLight); chassis.add(carLight.target);
         car.add(chassis); 
 
-        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 24); 
+        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 16); 
         const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111, roughness: 0.9 });
         const rimMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 1.0, roughness: 0.2 });
         function createWheel(x, z) {
@@ -152,64 +134,103 @@
         scene.add(car);
 
         // --- MAP ZONES ---
-        const colors = { sidewalk: 0xdddddd, sand: 0xe6c27a, ocean: 0x0288d1, hospitalBlue: 0x29b6f6, awningRed: 0xe53935 };
+        const colors = { sidewalk: 0xdddddd, sand: 0xe6c27a, hospitalBlue: 0x29b6f6, awningRed: 0xe53935 };
         const cityGround = new THREE.Mesh(new THREE.PlaneGeometry(280, 400), new THREE.MeshStandardMaterial({ map: roadTexture, roughness: 0.8 }));
         cityGround.rotation.x = -Math.PI / 2; cityGround.position.set(-60, 0, 0); cityGround.receiveShadow = true; scene.add(cityGround);
-        const sand = new THREE.Mesh(new THREE.PlaneGeometry(100, 400), new THREE.MeshStandardMaterial({ color: colors.sand, roughness: 1 }));
-        sand.rotation.x = -Math.PI / 2; sand.position.set(130, 0.05, 0); sand.receiveShadow = true; scene.add(sand);
-        const ocean = new THREE.Mesh(new THREE.PlaneGeometry(200, 400), new THREE.MeshPhysicalMaterial({ color: colors.ocean, transparent: true, opacity: 0.8, transmission: 0.9, roughness: 0.1 }));
-        ocean.rotation.x = -Math.PI / 2; ocean.position.set(280, -0.3, 0); scene.add(ocean);
 
-        // --- BUILDINGS & PROPS ---
-        const buildingColliders = []; const coins = []; const blockSize = 40; 
+        // --- NEW: CITY CLUTTER SYSTEM (Props & Parked Cars) ---
+        function spawnCityProps(x, z) {
+            // Streetlights
+            if (Math.random() > 0.4) {
+                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 6), new THREE.MeshStandardMaterial({ color: 0x333 }));
+                pole.position.set(x, 3, z); pole.castShadow = true; scene.add(pole);
+                const lamp = new THREE.Mesh(new THREE.BoxGeometry(1, 0.2, 0.4), new THREE.MeshStandardMaterial({ color: 0x333 }));
+                lamp.position.set(x - 0.4, 6, z); scene.add(lamp);
+                const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 0.3), new THREE.MeshStandardMaterial({ color: 0xffffee, emissive: 0xffffee, emissiveIntensity: 1 }));
+                bulb.position.set(x - 0.4, 5.9, z); scene.add(bulb);
+            }
+            // Benches or Trash Cans
+            if (Math.random() > 0.6) {
+                const bench = new THREE.Group();
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(2, 0.2, 0.8), new THREE.MeshStandardMaterial({ color: 0x8B4513 })); seat.position.y = 0.5; bench.add(seat);
+                const leg1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.6), new THREE.MeshStandardMaterial({ color: 0x111 })); leg1.position.set(-0.8, 0.25, 0); bench.add(leg1);
+                const leg2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.6), new THREE.MeshStandardMaterial({ color: 0x111 })); leg2.position.set(0.8, 0.25, 0); bench.add(leg2);
+                bench.position.set(x + (Math.random()*4-2), 0, z + 2); bench.rotation.y = Math.PI/2; scene.add(bench);
+            }
+            // Parked Cars (Low poly blocks to fill the street)
+            if (Math.random() > 0.7) {
+                const pColor = [0x111111, 0xffffff, 0x0044ff, 0xffaa00][Math.floor(Math.random()*4)];
+                const pCar = new THREE.Group();
+                const pBody = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 4), new THREE.MeshStandardMaterial({ color: pColor, roughness: 0.3 })); pBody.position.y = 0.6; pBody.castShadow = true; pCar.add(pBody);
+                const pCabin = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.6, 2), glassMat); pCabin.position.set(0, 1.3, -0.2); pCar.add(pCabin);
+                pCar.position.set(x - 5, 0, z - 10); scene.add(pCar);
+                const hitBox = new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x-5, 1, z-10), new THREE.Vector3(2.5, 2, 4.5));
+                buildingColliders.push(hitBox); // Make parked cars solid!
+            }
+        }
+        // --- LIVING BUILDINGS GENERATOR ---
+        const buildingColliders = []; const coins = []; const blockSize = 45; // Slightly larger blocks for more breathing room
         
-        function spawnCoin(x, z) {
-            const coin = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.2, 16), new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0x554400, metalness: 1, roughness: 0.1 }));
-            coin.rotation.x = Math.PI / 2; coin.position.set(x, 1.5, z); scene.add(coin);
-            coins.push({ mesh: coin, hitBox: new THREE.Box3() });
-        }
-
-        function createTree(x, z) {
-            const tree = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.4, 3), new THREE.MeshStandardMaterial({ color: 0x4e342e, roughness: 1 })); trunk.position.y = 1.5; trunk.castShadow = true; tree.add(trunk);
-            const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5, 0), new THREE.MeshStandardMaterial({ color: 0x2e7d32, flatShading: true })); leaves.position.y = 4; leaves.scale.y = 1.5; leaves.castShadow = true; tree.add(leaves);
-            tree.position.set(x, 0, z); scene.add(tree);
-        }
-
         function createLowPolyBuilding(x, z) {
             const bldgGroup = new THREE.Group();
             const type = Math.floor(Math.random() * 4); 
-            const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(28, 0.4, 28), new THREE.MeshStandardMaterial({ color: colors.sidewalk })); 
+            
+            const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(32, 0.4, 32), new THREE.MeshStandardMaterial({ color: colors.sidewalk })); 
             sidewalk.position.y = 0.2; sidewalk.receiveShadow = true; bldgGroup.add(sidewalk);
 
             let hitW = 16, hitD = 16;
             if (type === 0) { 
+                // Pizza / Cafe WITH OUTDOOR SEATING
                 const body = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 16), new THREE.MeshStandardMaterial({ color: 0xDEB887 })); body.position.y = 4; body.castShadow = true; bldgGroup.add(body);
                 const awning = new THREE.Mesh(new THREE.BoxGeometry(17, 0.5, 4), new THREE.MeshStandardMaterial({ color: 0x4CAF50 })); awning.position.set(0, 5, 8.5); awning.rotation.x = -Math.PI/6; awning.castShadow = true; bldgGroup.add(awning);
+                // 3D Glowing Sign
+                const sign = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 0.5), new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff3300, emissiveIntensity: 0.5 })); sign.position.set(0, 7, 8.25); bldgGroup.add(sign);
+                // Tiny Tables
+                for(let t=-4; t<=4; t+=4) {
+                    const table = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.1, 8), new THREE.MeshStandardMaterial({ color: 0xffffff })); table.position.set(t, 0.8, 10); bldgGroup.add(table);
+                    const tPole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.8), new THREE.MeshStandardMaterial({ color: 0x111 })); tPole.position.set(t, 0.4, 10); bldgGroup.add(tPole);
+                }
             } else if (type === 1) {
+                // Tall Apartment with Water Tower
                 const height = 25; const body = new THREE.Mesh(new THREE.BoxGeometry(14, height, 14), new THREE.MeshStandardMaterial({ color: 0xe0e0e0 })); body.position.y = height/2; body.castShadow = true; bldgGroup.add(body);
                 for(let i=5; i<height; i+=5) { const balc = new THREE.Mesh(new THREE.BoxGeometry(10, 1, 2), new THREE.MeshStandardMaterial({ color: 0x444 })); balc.position.set(0, i, 7.5); balc.castShadow = true; bldgGroup.add(balc); }
+                // Water Tower on roof
+                const tower = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 4, 8), new THREE.MeshStandardMaterial({ color: 0x8B4513 })); tower.position.set(3, height + 2, -3); bldgGroup.add(tower);
             } else if (type === 2) {
+                // Hospital WITH 3D GLOWING CROSS
                 const body = new THREE.Mesh(new THREE.BoxGeometry(18, 14, 14), new THREE.MeshStandardMaterial({ color: 0xffffff })); body.position.y = 7; body.castShadow = true; bldgGroup.add(body);
                 const stripe = new THREE.Mesh(new THREE.BoxGeometry(18.2, 1.5, 14.2), new THREE.MeshStandardMaterial({ color: 0xe53935 })); stripe.position.y = 10; bldgGroup.add(stripe);
-                const acUnit = new THREE.Mesh(new THREE.BoxGeometry(3, 2, 3), new THREE.MeshStandardMaterial({ color: 0x999 })); acUnit.position.set(3, 15, 0); acUnit.castShadow = true; bldgGroup.add(acUnit);
+                // Glowing Cross
+                const crossV = new THREE.Mesh(new THREE.BoxGeometry(1, 4, 0.5), new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000 })); crossV.position.set(0, 14, 7.1); bldgGroup.add(crossV);
+                const crossH = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 0.5), new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000 })); crossH.position.set(0, 14, 7.1); bldgGroup.add(crossH);
                 hitW = 18;
             } else {
-                const body = new THREE.Mesh(new THREE.BoxGeometry(14, 20, 14), new THREE.MeshStandardMaterial({ map: windowTexture, metalness: 0.3 })); body.position.y = 10; body.castShadow = true; bldgGroup.add(body);
+                // Skyscraper
+                const body = new THREE.Mesh(new THREE.BoxGeometry(14, 30, 14), new THREE.MeshStandardMaterial({ map: windowTexture, metalness: 0.3 })); body.position.y = 15; body.castShadow = true; bldgGroup.add(body);
             }
 
             bldgGroup.rotation.y = (Math.floor(Math.random() * 4)) * (Math.PI / 2); bldgGroup.position.set(x, 0, z); scene.add(bldgGroup);
-            const hitBox = new THREE.Box3(); hitBox.setFromCenterAndSize(new THREE.Vector3(x, 5, z), new THREE.Vector3(hitW, 20, hitD)); buildingColliders.push(hitBox);
+            const hitBox = new THREE.Box3(); hitBox.setFromCenterAndSize(new THREE.Vector3(x, 5, z), new THREE.Vector3(hitW, 30, hitD)); buildingColliders.push(hitBox);
 
-            if (Math.random() > 0.4) createTree(x + 12, z + 12);
-            if (Math.random() > 0.5) spawnCoin(x + blockSize/2, z);
+            // Populate the edges of this block with clutter!
+            spawnCityProps(x + 15, z + 15);
+            spawnCityProps(x - 15, z - 15);
+            
+            if (Math.random() > 0.5) {
+                const coin = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.2, 16), new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0x554400, metalness: 1 }));
+                coin.rotation.x = Math.PI / 2; coin.position.set(x + blockSize/2, 1.5, z); scene.add(coin);
+                coins.push({ mesh: coin, hitBox: new THREE.Box3() });
+            }
         }
 
-        for (let x = -120; x <= 120; x += blockSize) {
-            for (let z = -120; z <= 120; z += blockSize) {
-                if (Math.abs(x) > 10 || Math.abs(z) > 10) createLowPolyBuilding(x, z);
+        // Generate the massive living city!
+        for (let x = -135; x <= 135; x += blockSize) {
+            for (let z = -135; z <= 135; z += blockSize) {
+                if (Math.abs(x) > 15 || Math.abs(z) > 15) createLowPolyBuilding(x, z);
             }
-        }// --- CONTROLS & LOGIC ---
+        }
+
+        // --- CONTROLS & LOGIC ---
         let speed = 0, score = 0, acceleration = 0.02, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
         let input = { gas: false, rev: false, horn: false }; 
         const particles = []; const smokeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3); const smokeMat = new THREE.MeshLambertMaterial({ color: 0x999999, transparent: true, opacity: 0.8 });
@@ -252,8 +273,8 @@
             ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
             ctx.fillStyle = '#00e5ff'; ctx.beginPath(); ctx.arc(55, 55, 4, 0, Math.PI*2); ctx.fill();
             ctx.fillStyle = '#999';
-            for (let x = -120; x <= 120; x += blockSize) {
-                for (let z = -120; z <= 120; z += blockSize) {
+            for (let x = -135; x <= 135; x += blockSize) {
+                for (let z = -135; z <= 135; z += blockSize) {
                     const relX = (x - car.position.x) * 0.3 + 55; const relZ = (z - car.position.z) * 0.3 + 55;
                     if(relX > 0 && relX < 110 && relZ > 0 && relZ < 110) ctx.fillRect(relX - 4, relZ - 4, 8, 8);
                 }
@@ -266,22 +287,18 @@
             requestAnimationFrame(animate);
             const oldX = car.position.x; const oldZ = car.position.z;
 
-            let cMaxSpeed = 0.8; let cFric = 0.96;
-            if (car.position.x > 80) { cMaxSpeed = 0.3; cFric = 0.93; smokeMat.color.setHex(colors.sand); } 
-            else { smokeMat.color.setHex(0x999999); }
-
             if (input.gas) speed += acceleration; if (input.rev) speed -= acceleration;
-            speed *= cFric; if (speed > cMaxSpeed) speed = cMaxSpeed; if (speed < -cMaxSpeed / 2) speed = -cMaxSpeed / 2;
+            speed *= 0.96; if (speed > 0.8) speed = 0.8; if (speed < -0.4) speed = -0.4;
 
             frontLeftWheel.rotation.y = -steeringAngle * (Math.PI / 4); frontRightWheel.rotation.y = -steeringAngle * (Math.PI / 4);
             if (Math.abs(speed) > 0.005) car.rotation.y -= (steeringAngle * 0.06) * (speed > 0 ? 1 : -1);
 
             car.position.x += Math.sin(car.rotation.y) * speed; car.position.z += Math.cos(car.rotation.y) * speed;
 
-            document.getElementById('speedDisplay').innerText = `⚡ ${Math.abs(speed) > 0.01 ? Math.abs(Math.round((speed / cMaxSpeed) * 180)) : 0} KM/H`;
+            document.getElementById('speedDisplay').innerText = Math.abs(speed) > 0.01 ? Math.abs(Math.round((speed / 0.8) * 180)) : 0;
             updateMinimap();
 
-            chassis.rotation.z += (steeringAngle * (speed / cMaxSpeed) * 0.15 - chassis.rotation.z) * 0.1;
+            chassis.rotation.z += (steeringAngle * (speed / 0.8) * 0.15 - chassis.rotation.z) * 0.1;
             chassis.rotation.x += ((input.gas ? -0.05 : input.rev ? 0.05 : 0) - chassis.rotation.x) * 0.1;
             if (input.horn) { chassis.position.y = Math.random() * 0.05; window.headLightMat.emissive.setHex(0xffaa00); } 
             else { chassis.position.y = 0; window.headLightMat.emissive.setHex(0xddffff); }
@@ -298,7 +315,7 @@
             carBox.setFromObject(car); carBox.expandByScalar(-0.1); 
             for(let i = coins.length - 1; i >= 0; i--) {
                 let c = coins[i]; c.mesh.rotation.y += 0.05; c.hitBox.setFromObject(c.mesh);
-                if (carBox.intersectsBox(c.hitBox)) { scene.remove(c.mesh); coins.splice(i, 1); score++; document.getElementById('coinDisplay').innerText = `💰 ${score}`; }
+                if (carBox.intersectsBox(c.hitBox)) { scene.remove(c.mesh); coins.splice(i, 1); score++; document.getElementById('coinDisplay').innerText = score; }
             }
 
             for (let i = 0; i < buildingColliders.length; i++) {
