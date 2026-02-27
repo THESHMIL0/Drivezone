@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Driving Game</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; /* Prevents scrolling */
+            background-color: #87CEEB; /* Sky blue background */
+        }
+        /* Styling for our mobile touch controls */
+        #controls { 
+            position: absolute; 
+            bottom: 30px; 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-around; 
+            touch-action: manipulation; /* Optimizes for touch */
+        }
+        button { 
+            padding: 20px 30px; 
+            font-size: 18px; 
+            font-weight: bold;
+            border-radius: 15px; 
+            background: rgba(255, 255, 255, 0.8); 
+            border: 2px solid #333; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <button id="btnLeft">Left</button>
+        <button id="btnGas">GAS</button>
+        <button id="btnRight">Right</button>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
+
+        // 1. Setup the Scene, Camera, and Renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 2. Create the "Car" (A Red Box for now)
+        const carGeometry = new THREE.BoxGeometry(1, 0.5, 2);
+        const carMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const car = new THREE.Mesh(carGeometry, carMaterial);
+        scene.add(car);
+
+        // 3. Create a "Road" (A Grey Plane)
+        const roadGeometry = new THREE.PlaneGeometry(10, 100);
+        const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
+        const road = new THREE.Mesh(roadGeometry, roadMaterial);
+        road.rotation.x = Math.PI / 2; // Lay it flat
+        road.position.y = -0.5; // Move it below the car
+        scene.add(road);
+
+        // Position the camera behind and slightly above the car
+        camera.position.set(0, 2, 5);
+
+        // 4. Variables for Movement
+        let isDriving = false;
+        let turning = 0; // -1 for left, 1 for right, 0 for straight
+
+        // 5. Connect the HTML Buttons to our Code
+        document.getElementById('btnGas').addEventListener('touchstart', () => isDriving = true);
+        document.getElementById('btnGas').addEventListener('touchend', () => isDriving = false);
+        
+        document.getElementById('btnLeft').addEventListener('touchstart', () => turning = -1);
+        document.getElementById('btnLeft').addEventListener('touchend', () => turning = 0);
+        
+        document.getElementById('btnRight').addEventListener('touchstart', () => turning = 1);
+        document.getElementById('btnRight').addEventListener('touchend', () => turning = 0);
+
+        // 6. The Game Loop (Runs every frame)
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // If the Gas button is pressed, move the car forward on the Z axis
+            if (isDriving) {
+                car.position.z -= 0.1; 
+                camera.position.z -= 0.1; // Camera follows the car
+            }
+
+            // If left or right is pressed, move the car on the X axis
+            if (turning === -1) {
+                car.position.x -= 0.05;
+                camera.position.x -= 0.05;
+            } else if (turning === 1) {
+                car.position.x += 0.05;
+                camera.position.x += 0.05;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+  </html>
+  
