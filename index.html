@@ -3,106 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile Driving Game</title>
+    <title>Realistic Mobile Driving</title>
     <style>
         body { 
             margin: 0; 
-            overflow: hidden; /* Prevents scrolling */
-            background-color: #87CEEB; /* Sky blue background */
+            overflow: hidden; 
+            background-color: #87CEEB; 
+            user-select: none; /* Stops text selection while playing */
+            -webkit-user-select: none;
         }
-        /* Styling for our mobile touch controls */
+        /* Fullscreen Start Button */
+        #startBtn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            z-index: 100;
+        }
+        /* Mobile Controls Layout */
         #controls { 
             position: absolute; 
-            bottom: 30px; 
+            bottom: 20px; 
             width: 100%; 
-            display: flex; 
-            justify-content: space-around; 
-            touch-action: manipulation; /* Optimizes for touch */
+            display: none; /* Hidden until fullscreen starts */
+            justify-content: space-between; 
+            padding: 0 20px;
+            box-sizing: border-box;
         }
-        button { 
-            padding: 20px 30px; 
-            font-size: 18px; 
+        .control-group {
+            display: flex;
+            gap: 15px;
+        }
+        .btn { 
+            width: 70px; 
+            height: 70px; 
+            border-radius: 50%; 
+            background: rgba(255, 255, 255, 0.5); 
+            border: 3px solid #333; 
+            font-size: 14px;
             font-weight: bold;
-            border-radius: 15px; 
-            background: rgba(255, 255, 255, 0.8); 
-            border: 2px solid #333; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none; /* Crucial for smooth mobile touch */
         }
+        #btnGas { background: rgba(40, 167, 69, 0.6); }
+        #btnRev { background: rgba(220, 53, 69, 0.6); }
     </style>
 </head>
 <body>
 
+    <button id="startBtn">Tap to Play (Landscape)</button>
+
     <div id="controls">
-        <button id="btnLeft">Left</button>
-        <button id="btnGas">GAS</button>
-        <button id="btnRight">Right</button>
+        <div class="control-group">
+            <div class="btn" id="btnLeft">LEFT</div>
+            <div class="btn" id="btnRight">RIGHT</div>
+        </div>
+        <div class="control-group">
+            <div class="btn" id="btnRev">BRAKE</div>
+            <div class="btn" id="btnGas">GAS</div>
+        </div>
     </div>
 
     <script type="module">
         import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
 
-        // 1. Setup the Scene, Camera, and Renderer
+        // --- 1. SETUP ---
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        
-        const renderer = new THREE.WebGLRenderer();
+        scene.background = new THREE.Color(0x87CEEB); // Sky
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 2. Create the "Car" (A Red Box for now)
-        const carGeometry = new THREE.BoxGeometry(1, 0.5, 2);
-        const carMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const car = new THREE.Mesh(carGeometry, carMaterial);
+        // Add some sunlight
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        // --- 2. BUILD THE CAR ---
+        const car = new THREE.Group();
+        
+        // Car Body (Red)
+        const bodyGeo = new THREE.BoxGeometry(2, 0.5, 4);
+        const bodyMat = new THREE.MeshPhongMaterial({ color: 0xcc0000 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 0.5;
+        car.add(body);
+
+        // Car Roof (White)
+        const roofGeo = new THREE.BoxGeometry(1.5, 0.5, 2);
+        const roofMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        const roof = new THREE.Mesh(roofGeo, roofMat);
+        roof.position.set(0, 1, -0.5);
+        car.add(roof);
+
+        // Wheels (Black)
+        const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.2, 16);
+        const wheelMat = new THREE.MeshPhongMaterial({ color: 0x111111 });
+        const wheelPositions = [
+            [-1.1, 0.4, 1.2], [1.1, 0.4, 1.2],  // Front wheels
+            [-1.1, 0.4, -1.2], [1.1, 0.4, -1.2] // Rear wheels
+        ];
+        wheelPositions.forEach(pos => {
+            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(...pos);
+            car.add(wheel);
+        });
+
         scene.add(car);
 
-        // 3. Create a "Road" (A Grey Plane)
-        const roadGeometry = new THREE.PlaneGeometry(10, 100);
-        const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
-        const road = new THREE.Mesh(roadGeometry, roadMaterial);
-        road.rotation.x = Math.PI / 2; // Lay it flat
-        road.position.y = -0.5; // Move it below the car
-        scene.add(road);
+        // --- 3. BUILD THE GROUND & BOUNDARIES ---
+        const groundSize = 100;
+        const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize);
+        const groundMat = new THREE.MeshPhongMaterial({ color: 0x228B22 }); // Forest Green
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
 
-        // Position the camera behind and slightly above the car
-        camera.position.set(0, 2, 5);
+        // --- 4. REALISTIC PHYSICS VARIABLES ---
+        let speed = 0;
+        const maxSpeed = 0.4;
+        const acceleration = 0.005;
+        const friction = 0.002;
+        const turnSpeed = 0.04;
 
-        // 4. Variables for Movement
-        let isDriving = false;
-        let turning = 0; // -1 for left, 1 for right, 0 for straight
+        let input = { gas: false, rev: false, left: false, right: false };
 
-        // 5. Connect the HTML Buttons to our Code
-        document.getElementById('btnGas').addEventListener('touchstart', () => isDriving = true);
-        document.getElementById('btnGas').addEventListener('touchend', () => isDriving = false);
-        
-        document.getElementById('btnLeft').addEventListener('touchstart', () => turning = -1);
-        document.getElementById('btnLeft').addEventListener('touchend', () => turning = 0);
-        
-        document.getElementById('btnRight').addEventListener('touchstart', () => turning = 1);
-        document.getElementById('btnRight').addEventListener('touchend', () => turning = 0);
+        // --- 5. TOUCH CONTROLS ---
+        function bindBtn(id, key) {
+            const btn = document.getElementById(id);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); input[key] = true; });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); input[key] = false; });
+        }
+        bindBtn('btnGas', 'gas');
+        bindBtn('btnRev', 'rev');
+        bindBtn('btnLeft', 'left');
+        bindBtn('btnRight', 'right');
 
-        // 6. The Game Loop (Runs every frame)
+        // Fullscreen & Landscape Lock
+        document.getElementById('startBtn').addEventListener('click', () => {
+            document.documentElement.requestFullscreen().catch(err => console.log(err));
+            try { screen.orientation.lock('landscape'); } catch(e) {} // Tries to lock landscape
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('controls').style.display = 'flex';
+        });
+
+        // --- 6. GAME LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
-            // If the Gas button is pressed, move the car forward on the Z axis
-            if (isDriving) {
-                car.position.z -= 0.1; 
-                camera.position.z -= 0.1; // Camera follows the car
+            // Physics: Acceleration and Braking
+            if (input.gas) {
+                speed += acceleration;
+            } else if (input.rev) {
+                speed -= acceleration;
+            } else {
+                // Friction slows the car down when no pedals are pressed
+                if (speed > 0) speed -= friction;
+                if (speed < 0) speed += friction;
+                if (Math.abs(speed) < friction) speed = 0; // Complete stop
             }
 
-            // If left or right is pressed, move the car on the X axis
-            if (turning === -1) {
-                car.position.x -= 0.05;
-                camera.position.x -= 0.05;
-            } else if (turning === 1) {
-                car.position.x += 0.05;
-                camera.position.x += 0.05;
+            // Limit max speeds
+            if (speed > maxSpeed) speed = maxSpeed;
+            if (speed < -maxSpeed / 2) speed = -maxSpeed / 2; // Reverse is slower
+
+            // Physics: Steering (Can only steer if moving)
+            if (speed !== 0) {
+                // Reverse steering direction if going backwards to feel realistic
+                const turnDirection = speed > 0 ? 1 : -1; 
+                if (input.left) car.rotation.y += turnSpeed * turnDirection;
+                if (input.right) car.rotation.y -= turnSpeed * turnDirection;
             }
+
+            // Move the car forward/backward based on where it's facing
+            car.position.x += Math.sin(car.rotation.y) * speed;
+            car.position.z += Math.cos(car.rotation.y) * speed;
+
+            // Collision: Keep car inside the ground boundaries
+            const limit = (groundSize / 2) - 2;
+            if (car.position.x > limit) car.position.x = limit;
+            if (car.position.x < -limit) car.position.x = -limit;
+            if (car.position.z > limit) car.position.z = limit;
+            if (car.position.z < -limit) car.position.z = -limit;
+
+            // Camera follows behind the car
+            const cameraOffsetZ = Math.cos(car.rotation.y) * 8;
+            const cameraOffsetX = Math.sin(car.rotation.y) * 8;
+            camera.position.set(car.position.x - cameraOffsetX, 4, car.position.z - cameraOffsetZ);
+            camera.lookAt(car.position);
 
             renderer.render(scene, camera);
         }
 
+        // Handle resizing if the phone flips
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
         animate();
     </script>
 </body>
-  </html>
-  
+</html>
