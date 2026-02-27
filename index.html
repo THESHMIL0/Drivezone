@@ -3,58 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Realistic Mobile Driving</title>
+    <title>High Detail Mobile Village Driving</title>
     <style>
         body { 
-            margin: 0; 
-            overflow: hidden; 
-            background-color: #87CEEB; 
-            user-select: none; /* Stops text selection while playing */
-            -webkit-user-select: none;
+            margin: 0; overflow: hidden; background-color: #87CEEB; 
+            user-select: none; -webkit-user-select: none;
+            font-family: sans-serif;
         }
-        /* Fullscreen Start Button */
         #startBtn {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px 40px;
-            font-size: 24px;
-            font-weight: bold;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            z-index: 100;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 20px 40px; font-size: 24px; font-weight: bold;
+            background: #28a745; color: white; border: none; border-radius: 10px; z-index: 100;
         }
-        /* Mobile Controls Layout */
         #controls { 
-            position: absolute; 
-            bottom: 20px; 
-            width: 100%; 
-            display: none; /* Hidden until fullscreen starts */
-            justify-content: space-between; 
-            padding: 0 20px;
-            box-sizing: border-box;
+            position: absolute; bottom: 20px; width: 100%; display: none; 
+            justify-content: space-between; padding: 0 20px; box-sizing: border-box;
         }
-        .control-group {
-            display: flex;
-            gap: 15px;
-        }
+        .control-group { display: flex; gap: 15px; }
         .btn { 
-            width: 70px; 
-            height: 70px; 
-            border-radius: 50%; 
-            background: rgba(255, 255, 255, 0.5); 
-            border: 3px solid #333; 
-            font-size: 14px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: none; /* Crucial for smooth mobile touch */
+            width: 70px; height: 70px; border-radius: 50%; 
+            background: rgba(255, 255, 255, 0.7); border: 3px solid #333; 
+            font-size: 14px; font-weight: bold; display: flex; align-items: center; 
+            justify-content: center; touch-action: none;
         }
-        #btnGas { background: rgba(40, 167, 69, 0.6); }
-        #btnRev { background: rgba(220, 53, 69, 0.6); }
+        #btnGas { background: rgba(40, 167, 69, 0.8); color: white; }
+        #btnRev { background: rgba(220, 53, 69, 0.8); color: white; }
     </style>
 </head>
 <body>
@@ -75,138 +48,192 @@
     <script type="module">
         import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
 
-        // --- 1. SETUP ---
+        // --- 1. SETUP & HIGH DETAIL GRAPHICS ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87CEEB); // Sky
+        scene.background = new THREE.Color(0x60a3ff); // Richer sky blue
+        scene.fog = new THREE.FogExp2(0x60a3ff, 0.015); // Adds fog for distance depth
+
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true; // Turn on shadows!
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft shadow edges
         document.body.appendChild(renderer.domElement);
 
-        // Add some sunlight
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(5, 10, 5);
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0x404040));
+        // --- LIGHTING (The Sun) ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
 
-        // --- 2. BUILD THE CAR ---
+        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        sunLight.position.set(50, 100, 50);
+        sunLight.castShadow = true; // Sun casts shadows
+        sunLight.shadow.mapSize.width = 1024; // High res shadows
+        sunLight.shadow.mapSize.height = 1024;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 250;
+        sunLight.shadow.camera.left = -100;
+        sunLight.shadow.camera.right = 100;
+        sunLight.shadow.camera.top = 100;
+        sunLight.shadow.camera.bottom = -100;
+        scene.add(sunLight);
+
+        // --- 2. THE CAR (With Shadows) ---
         const car = new THREE.Group();
         
-        // Car Body (Red)
+        // High-detail Standard Material reacts to light
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xcc0000, roughness: 0.2, metalness: 0.5 });
         const bodyGeo = new THREE.BoxGeometry(2, 0.5, 4);
-        const bodyMat = new THREE.MeshPhongMaterial({ color: 0xcc0000 });
         const body = new THREE.Mesh(bodyGeo, bodyMat);
         body.position.y = 0.5;
+        body.castShadow = true; // Car casts shadow
         car.add(body);
 
-        // Car Roof (White)
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
         const roofGeo = new THREE.BoxGeometry(1.5, 0.5, 2);
-        const roofMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
         const roof = new THREE.Mesh(roofGeo, roofMat);
         roof.position.set(0, 1, -0.5);
+        roof.castShadow = true;
         car.add(roof);
-
-        // Wheels (Black)
-        const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.2, 16);
-        const wheelMat = new THREE.MeshPhongMaterial({ color: 0x111111 });
-        const wheelPositions = [
-            [-1.1, 0.4, 1.2], [1.1, 0.4, 1.2],  // Front wheels
-            [-1.1, 0.4, -1.2], [1.1, 0.4, -1.2] // Rear wheels
-        ];
-        wheelPositions.forEach(pos => {
-            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-            wheel.rotation.z = Math.PI / 2;
-            wheel.position.set(...pos);
-            car.add(wheel);
-        });
 
         scene.add(car);
 
-        // --- 3. BUILD THE GROUND & BOUNDARIES ---
-        const groundSize = 100;
-        const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize);
-        const groundMat = new THREE.MeshPhongMaterial({ color: 0x228B22 }); // Forest Green
+        // --- 3. GENERATE THE VILLAGE ---
+        // The Ground
+        const groundGeo = new THREE.PlaneGeometry(300, 300);
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x2e8b57 }); // Sea green grass
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true; // Ground receives shadows
         scene.add(ground);
 
-        // --- 4. REALISTIC PHYSICS VARIABLES ---
+        // Building Materials (A few different colors)
+        const buildingColors = [0xdddddd, 0xb0c4de, 0xf5deb3, 0xd3d3d3];
+        
+        // Loop to build a city grid
+        const blockSize = 30; // Distance between intersections
+        for (let x = -120; x <= 120; x += blockSize) {
+            for (let z = -120; z <= 120; z += blockSize) {
+                
+                // Add a Road Plane at this block
+                const roadGeo = new THREE.PlaneGeometry(blockSize, 8);
+                const roadMat = new THREE.MeshStandardMaterial({ color: 0x333333 }); // Dark Asphalt
+                
+                // Horizontal road
+                const roadX = new THREE.Mesh(roadGeo, roadMat);
+                roadX.rotation.x = -Math.PI / 2;
+                roadX.position.set(x, 0.01, z); // Slightly above ground to prevent glitching
+                roadX.receiveShadow = true;
+                scene.add(roadX);
+
+                // Vertical road
+                const roadZ = new THREE.Mesh(roadGeo, roadMat);
+                roadZ.rotation.x = -Math.PI / 2;
+                roadZ.rotation.z = Math.PI / 2;
+                roadZ.position.set(x, 0.02, z); 
+                roadZ.receiveShadow = true;
+                scene.add(roadZ);
+
+                // Don't build a house exactly where the car spawns (0,0)
+                if (Math.abs(x) > 10 || Math.abs(z) > 10) {
+                    // Create a random building in the corner of the block
+                    const bHeight = Math.random() * 15 + 5; // Height between 5 and 20
+                    const bWidth = Math.random() * 10 + 8;
+                    const bColor = buildingColors[Math.floor(Math.random() * buildingColors.length)];
+                    
+                    const bGeo = new THREE.BoxGeometry(bWidth, bHeight, bWidth);
+                    const bMat = new THREE.MeshStandardMaterial({ color: bColor, roughness: 0.8 });
+                    const building = new THREE.Mesh(bGeo, bMat);
+                    
+                    // Position it off-center from the roads
+                    building.position.set(x + 10, bHeight / 2, z + 10);
+                    building.castShadow = true;
+                    building.receiveShadow = true;
+                    scene.add(building);
+                }
+            }
+        }
+
+        // --- 4. IMPROVED SMOOTH PHYSICS ---
         let speed = 0;
-        const maxSpeed = 0.4;
-        const acceleration = 0.005;
-        const friction = 0.002;
-        const turnSpeed = 0.04;
+        let steeringAngle = 0;
+        const maxSpeed = 0.6;
+        const acceleration = 0.015;
+        const friction = 0.96; // Multiplier to glide to a stop smoothly
+        const turnSpeed = 0.05;
 
         let input = { gas: false, rev: false, left: false, right: false };
 
-        // --- 5. TOUCH CONTROLS ---
+        // Touch Controls Binding
         function bindBtn(id, key) {
             const btn = document.getElementById(id);
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); input[key] = true; });
             btn.addEventListener('touchend', (e) => { e.preventDefault(); input[key] = false; });
         }
-        bindBtn('btnGas', 'gas');
-        bindBtn('btnRev', 'rev');
-        bindBtn('btnLeft', 'left');
-        bindBtn('btnRight', 'right');
+        bindBtn('btnGas', 'gas'); bindBtn('btnRev', 'rev');
+        bindBtn('btnLeft', 'left'); bindBtn('btnRight', 'right');
 
-        // Fullscreen & Landscape Lock
+        // Fullscreen
         document.getElementById('startBtn').addEventListener('click', () => {
             document.documentElement.requestFullscreen().catch(err => console.log(err));
-            try { screen.orientation.lock('landscape'); } catch(e) {} // Tries to lock landscape
+            try { screen.orientation.lock('landscape'); } catch(e) {}
             document.getElementById('startBtn').style.display = 'none';
             document.getElementById('controls').style.display = 'flex';
         });
 
-        // --- 6. GAME LOOP ---
+        // --- 5. GAME LOOP & CHASE CAMERA ---
+        // We create a "dummy" object for the camera to smoothly follow
+        const cameraTarget = new THREE.Vector3();
+
         function animate() {
             requestAnimationFrame(animate);
 
-            // Physics: Acceleration and Braking
-            if (input.gas) {
-                speed += acceleration;
-            } else if (input.rev) {
-                speed -= acceleration;
-            } else {
-                // Friction slows the car down when no pedals are pressed
-                if (speed > 0) speed -= friction;
-                if (speed < 0) speed += friction;
-                if (Math.abs(speed) < friction) speed = 0; // Complete stop
-            }
-
-            // Limit max speeds
+            // Engine power
+            if (input.gas) speed += acceleration;
+            if (input.rev) speed -= acceleration;
+            
+            // Friction (Smooth slowing down)
+            speed *= friction; 
+            
+            // Limit speed
             if (speed > maxSpeed) speed = maxSpeed;
-            if (speed < -maxSpeed / 2) speed = -maxSpeed / 2; // Reverse is slower
+            if (speed < -maxSpeed / 2) speed = -maxSpeed / 2;
 
-            // Physics: Steering (Can only steer if moving)
-            if (speed !== 0) {
-                // Reverse steering direction if going backwards to feel realistic
-                const turnDirection = speed > 0 ? 1 : -1; 
-                if (input.left) car.rotation.y += turnSpeed * turnDirection;
-                if (input.right) car.rotation.y -= turnSpeed * turnDirection;
-            }
+            // Smooth Steering
+            if (input.left) steeringAngle += turnSpeed;
+            if (input.right) steeringAngle -= turnSpeed;
+            
+            // Auto-center the steering wheel when letting go
+            if (!input.left && !input.right) steeringAngle *= 0.8; 
+            
+            // Clamp steering
+            if (steeringAngle > 0.05) steeringAngle = 0.05;
+            if (steeringAngle < -0.05) steeringAngle = -0.05;
 
-            // Move the car forward/backward based on where it's facing
+            // Turn the car based on speed AND steering angle (realistic)
+            car.rotation.y += steeringAngle * speed * 10;
+
+            // Move Car
             car.position.x += Math.sin(car.rotation.y) * speed;
             car.position.z += Math.cos(car.rotation.y) * speed;
 
-            // Collision: Keep car inside the ground boundaries
-            const limit = (groundSize / 2) - 2;
-            if (car.position.x > limit) car.position.x = limit;
-            if (car.position.x < -limit) car.position.x = -limit;
-            if (car.position.z > limit) car.position.z = limit;
-            if (car.position.z < -limit) car.position.z = -limit;
+            // Smooth "Chase" Camera Math
+            // 1. Calculate where the camera *should* be (behind and above the car)
+            const idealCameraOffset = new THREE.Vector3(
+                car.position.x - Math.sin(car.rotation.y) * 10,
+                car.position.y + 5,
+                car.position.z - Math.cos(car.rotation.y) * 10
+            );
+            // 2. Smoothly glide the actual camera to that ideal position (Lerp)
+            camera.position.lerp(idealCameraOffset, 0.1);
 
-            // Camera follows behind the car
-            const cameraOffsetZ = Math.cos(car.rotation.y) * 8;
-            const cameraOffsetX = Math.sin(car.rotation.y) * 8;
-            camera.position.set(car.position.x - cameraOffsetX, 4, car.position.z - cameraOffsetZ);
-            camera.lookAt(car.position);
+            // 3. Make the camera smoothly look at the car
+            cameraTarget.lerp(car.position, 0.2);
+            camera.lookAt(cameraTarget);
 
             renderer.render(scene, camera);
         }
 
-        // Handle resizing if the phone flips
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
