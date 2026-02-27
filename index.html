@@ -55,8 +55,8 @@
 
         // --- 1. SETUP & BRIGHT LIGHTING ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xe0f7fa); // Very light cyan sky matching the image vibe
-        scene.fog = new THREE.FogExp2(0xe0f7fa, 0.008);
+        scene.background = new THREE.Color(0xe0f7fa); 
+        scene.fog = new THREE.FogExp2(0xe0f7fa, 0.006);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -96,78 +96,96 @@
 
         // --- 3. DENSE LOW-POLY CITY GENERATION ---
         const buildingColliders = [];
-        const blockSize = 35; // Much smaller blocks so buildings are closer!
+        const blockSize = 35; 
         const roadWidth = 10;
 
-        // Color Palette from your image
         const colors = {
-            white: 0xffffff, teal: 0x4fc3f7, darkTeal: 0x00838f, 
-            red: 0xe53935, beige: 0xf5f5dc, brown: 0x795548, 
-            darkGrey: 0x424242, sidewalk: 0xcccccc
+            white: 0xffffff, hospitalBlue: 0x4fc3f7, hospitalRed: 0xe53935, 
+            beige: 0xf5f5dc, brown: 0x5D4037, darkGrey: 0x424242, 
+            sidewalk: 0xcccccc, awningRed: 0xd32f2f, hotelRoof: 0x795548
         };
 
         function createLowPolyBuilding(x, z) {
             const bldgGroup = new THREE.Group();
-            const type = Math.floor(Math.random() * 3);
+            const type = Math.floor(Math.random() * 4); // 4 distinct building types now!
 
             // Sidewalk Base
             const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(blockSize - roadWidth, 0.2, blockSize - roadWidth), new THREE.MeshStandardMaterial({ color: colors.sidewalk }));
             sidewalk.position.y = 0.1; sidewalk.receiveShadow = true; bldgGroup.add(sidewalk);
 
             if (type === 0) {
-                // Cafe / Shop with Awning
-                const base = new THREE.Mesh(new THREE.BoxGeometry(14, 6, 14), new THREE.MeshStandardMaterial({ color: colors.brown }));
+                // HOSPITAL (White with red stripes and blue roof)
+                const base = new THREE.Mesh(new THREE.BoxGeometry(16, 6, 14), new THREE.MeshStandardMaterial({ color: colors.white }));
                 base.position.y = 3; base.castShadow = true; bldgGroup.add(base);
                 
-                // Red Awning
-                const awning = new THREE.Mesh(new THREE.BoxGeometry(15, 1, 4), new THREE.MeshStandardMaterial({ color: colors.red }));
-                awning.position.set(0, 5, 7); awning.rotation.x = -Math.PI / 8; awning.castShadow = true; bldgGroup.add(awning);
+                const redStripe = new THREE.Mesh(new THREE.BoxGeometry(16.2, 1, 14.2), new THREE.MeshStandardMaterial({ color: colors.hospitalRed }));
+                redStripe.position.y = 6.5; bldgGroup.add(redStripe);
                 
-                const roof = new THREE.Mesh(new THREE.BoxGeometry(14.5, 1.5, 14.5), new THREE.MeshStandardMaterial({ color: colors.beige }));
-                roof.position.y = 6.75; roof.castShadow = true; bldgGroup.add(roof);
+                const topTier = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 12), new THREE.MeshStandardMaterial({ color: colors.white }));
+                topTier.position.y = 9.5; topTier.castShadow = true; bldgGroup.add(topTier);
+
+                const roof = new THREE.Mesh(new THREE.BoxGeometry(15, 0.5, 13), new THREE.MeshStandardMaterial({ color: colors.hospitalBlue }));
+                roof.position.y = 12.25; bldgGroup.add(roof);
 
             } else if (type === 1) {
-                // Hospital / Office (Multi-tier with stripes)
-                const base = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 14), new THREE.MeshStandardMaterial({ color: colors.white }));
-                base.position.y = 4; base.castShadow = true; bldgGroup.add(base);
+                // CAFE (Brown with bright red angled awning)
+                const base = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 14), new THREE.MeshStandardMaterial({ color: colors.beige }));
+                base.position.y = 2.5; base.castShadow = true; bldgGroup.add(base);
                 
-                // Teal Stripe
-                const stripe = new THREE.Mesh(new THREE.BoxGeometry(16.2, 1.5, 14.2), new THREE.MeshStandardMaterial({ color: colors.teal }));
-                stripe.position.y = 6; bldgGroup.add(stripe);
-                
-                // Top Tier
-                const top = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 10), new THREE.MeshStandardMaterial({ color: colors.white }));
-                top.position.y = 13; top.castShadow = true; bldgGroup.add(top);
+                const roof = new THREE.Mesh(new THREE.BoxGeometry(15, 2, 15), new THREE.MeshStandardMaterial({ color: colors.brown }));
+                roof.position.y = 6; roof.castShadow = true; bldgGroup.add(roof);
 
-            } else {
-                // Hotel / Apartment
-                const height = 15 + Math.random() * 10;
+                const awning = new THREE.Mesh(new THREE.BoxGeometry(14.5, 0.5, 4), new THREE.MeshStandardMaterial({ color: colors.awningRed }));
+                awning.position.set(0, 4, 7.5); awning.rotation.x = -Math.PI / 6; awning.castShadow = true; bldgGroup.add(awning);
+
+            } else if (type === 2) {
+                // HOTEL (Tall beige building with brown balconies)
+                const height = 18;
                 const body = new THREE.Mesh(new THREE.BoxGeometry(14, height, 14), new THREE.MeshStandardMaterial({ color: colors.beige }));
                 body.position.y = height / 2; body.castShadow = true; bldgGroup.add(body);
                 
-                const roof = new THREE.Mesh(new THREE.BoxGeometry(15, 1, 15), new THREE.MeshStandardMaterial({ color: colors.darkGrey }));
+                // Add Balconies using a loop!
+                for(let i = 4; i < height; i+= 4) {
+                    const balcony = new THREE.Mesh(new THREE.BoxGeometry(10, 1, 2), new THREE.MeshStandardMaterial({ color: colors.hotelRoof }));
+                    balcony.position.set(0, i, 7.5); balcony.castShadow = true; bldgGroup.add(balcony);
+                }
+
+                const roof = new THREE.Mesh(new THREE.BoxGeometry(15, 1, 15), new THREE.MeshStandardMaterial({ color: colors.hotelRoof }));
                 roof.position.y = height + 0.5; roof.castShadow = true; bldgGroup.add(roof);
+
+            } else {
+                // BANK (Classic pillars and triangle roof)
+                const base = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 12), new THREE.MeshStandardMaterial({ color: colors.hospitalBlue }));
+                base.position.set(0, 4, -1); base.castShadow = true; bldgGroup.add(base);
+
+                // 4 Pillars
+                for(let p = -6; p <= 6; p+= 4) {
+                    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 8), new THREE.MeshStandardMaterial({ color: colors.white }));
+                    pillar.position.set(p, 4, 6); pillar.castShadow = true; bldgGroup.add(pillar);
+                }
+
+                // Triangle Roof
+                const roof = new THREE.Mesh(new THREE.ConeGeometry(11, 4, 4), new THREE.MeshStandardMaterial({ color: colors.hotelRoof }));
+                roof.position.set(0, 10, 2); roof.rotation.y = Math.PI / 4; roof.castShadow = true; bldgGroup.add(roof);
             }
 
+            // Rotate randomly so the city looks varied
+            bldgGroup.rotation.y = (Math.floor(Math.random() * 4)) * (Math.PI / 2);
             bldgGroup.position.set(x, 0, z);
             scene.add(bldgGroup);
             
-            // Hitbox
             const hitbox = new THREE.Box3().setFromObject(bldgGroup);
-            hitbox.expandByScalar(-1); // Forgive slight wall scrapes
+            hitbox.expandByScalar(-1); 
             buildingColliders.push(hitbox);
         }
 
         // Draw the City Grid
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshStandardMaterial({ color: 0x333333 })); // Dark asphalt everywhere
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshStandardMaterial({ color: 0x333333 })); 
         ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
         for (let x = -140; x <= 140; x += blockSize) {
             for (let z = -140; z <= 140; z += blockSize) {
-                // Don't build exactly where the car spawns
-                if (Math.abs(x) > 10 || Math.abs(z) > 10) {
-                    createLowPolyBuilding(x, z);
-                }
+                if (Math.abs(x) > 10 || Math.abs(z) > 10) createLowPolyBuilding(x, z);
             }
         }
 
@@ -209,20 +227,28 @@
             document.getElementById('startBtn').style.display = 'none'; document.getElementById('controls').style.display = 'flex';
         });
 
-        // --- 5. GAME LOOP ---
+        // --- 5. GAME LOOP & PHYSICS FIX ---
         const cameraTarget = new THREE.Vector3(); const carBox = new THREE.Box3();
         function animate() {
             requestAnimationFrame(animate);
             const oldX = car.position.x; const oldZ = car.position.z;
 
+            // Engine Speed
             if (input.gas) speed += acceleration; if (input.rev) speed -= acceleration;
             speed *= friction; if (speed > maxSpeed) speed = maxSpeed; if (speed < -maxSpeed / 2) speed = -maxSpeed / 2;
 
-            car.rotation.y -= (steeringAngle * 0.05) * (speed > 0 ? 1 : -1);
-            frontLeftWheel.rotation.y = -steeringAngle * (Math.PI / 4); frontRightWheel.rotation.y = -steeringAngle * (Math.PI / 4);
+            // BUG FIX: The front physical wheels always turn when you steer...
+            frontLeftWheel.rotation.y = -steeringAngle * (Math.PI / 4); 
+            frontRightWheel.rotation.y = -steeringAngle * (Math.PI / 4);
+
+            // BUG FIX: ...But the car body ONLY turns if the car is actually moving!
+            if (Math.abs(speed) > 0.005) {
+                car.rotation.y -= (steeringAngle * 0.05) * (speed > 0 ? 1 : -1);
+            }
 
             car.position.x += Math.sin(car.rotation.y) * speed; car.position.z += Math.cos(car.rotation.y) * speed;
 
+            // Hitbox Detection
             carBox.setFromObject(car); carBox.expandByScalar(-0.2); 
             for (let i = 0; i < buildingColliders.length; i++) {
                 if (carBox.intersectsBox(buildingColliders[i])) {
@@ -231,6 +257,7 @@
                 }
             }
 
+            // Smooth Camera
             if ((input.gas || input.rev) && !isDraggingCamera) cameraOrbitAngle *= 0.9; 
             const finalCamAngle = car.rotation.y + cameraOrbitAngle;
             const idealOffset = new THREE.Vector3(car.position.x - Math.sin(finalCamAngle)*10, car.position.y + 6, car.position.z - Math.cos(finalCamAngle)*10);
