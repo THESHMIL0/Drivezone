@@ -4,59 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    <title>Pro City Drift</title>
+    <title>Ultimate City Drift</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; }
         
-        /* Modern HUD UI */
-        #uiTop { position: absolute; top: 15px; left: 0; width: 100%; display: none; justify-content: center; gap: 20px; z-index: 60; pointer-events: none; }
-        .hud-box { background: rgba(0, 20, 40, 0.85); border: 2px solid #00e5ff; border-radius: 8px; padding: 8px 20px; color: #00e5ff; font-weight: bold; font-size: 20px; font-family: monospace; box-shadow: 0 0 10px rgba(0,229,255,0.3); display: flex; align-items: center; gap: 10px; }
-        .hud-box.gold { border-color: #ffc107; color: #ffc107; box-shadow: 0 0 10px rgba(255,193,7,0.3); }
+        #uiTop { position: absolute; top: 15px; left: 15px; width: calc(100% - 30px); display: none; justify-content: space-between; align-items: flex-start; z-index: 60; pointer-events: none; }
+        .hud-left { display: flex; flex-direction: column; gap: 10px; }
+        #minimap { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #00e5ff; background: rgba(0,10,20,0.8); box-shadow: 0 0 20px rgba(0,229,255,0.5); backdrop-filter: blur(5px); }
+        .hud-panel { background: linear-gradient(135deg, rgba(0, 20, 40, 0.9), rgba(0, 40, 60, 0.8)); border: 2px solid #00e5ff; border-radius: 12px; padding: 5px 15px; color: #fff; font-weight: bold; font-size: 16px; box-shadow: 0 0 15px rgba(0,229,255,0.3); display: flex; align-items: center; gap: 8px; backdrop-filter: blur(5px); }
+        .hud-panel.gold { border-color: #ffc107; box-shadow: 0 0 15px rgba(255,193,7,0.3); }
+        .hud-value { color: #fff; font-family: monospace; font-size: 22px; text-shadow: 0 0 8px currentColor; }
         
-        #minimapContainer { position: absolute; top: 15px; left: 15px; z-index: 60; display: none; }
-        #minimap { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #00e5ff; background: rgba(0,0,0,0.7); box-shadow: 0 0 15px rgba(0,229,255,0.4); }
-
         #cameraArea { position: absolute; top: 0; left: 0; width: 100%; height: 50%; z-index: 10; }
         #controls { position: absolute; bottom: 25px; width: 100%; display: none; justify-content: space-between; align-items: flex-end; padding: 0 30px; box-sizing: border-box; z-index: 50; }
         
-        /* Realistic Steering Wheel */
         #steeringArea { width: 150px; height: 150px; position: relative; display: flex; align-items: center; justify-content: center; touch-action: none; }
-        #steeringWheel { width: 100%; height: 100%; border-radius: 50%; border: 16px solid #1a1a1a; box-sizing: border-box; background: transparent; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 2px 5px rgba(255,255,255,0.2); transition: transform 0.1s; }
-        #steeringWheel::before { content: ''; position: absolute; top: 50%; left: -5px; right: -5px; height: 24px; background: #1a1a1a; transform: translateY(-50%); }
-        #steeringWheel::after { content: ''; position: absolute; top: 0; left: 50%; width: 10px; height: 16px; background: #ff0000; transform: translateX(-50%); top: -16px; } /* Red center stripe */
-        .horn-center { position: absolute; width: 45px; height: 45px; background: #222; border-radius: 50%; border: 2px solid #000; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: inset 0 2px 5px rgba(255,255,255,0.1); }
+        #steeringWheel { width: 100%; height: 100%; border-radius: 50%; border: 16px solid #111; box-sizing: border-box; background: transparent; position: relative; box-shadow: 0 15px 25px rgba(0,0,0,0.8), inset 0 2px 8px rgba(255,255,255,0.1); transition: transform 0.1s; }
+        #steeringWheel::before { content: ''; position: absolute; top: 50%; left: -5px; right: -5px; height: 26px; background: #111; transform: translateY(-50%); box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        #steeringWheel::after { content: ''; position: absolute; top: 0; left: 50%; width: 12px; height: 16px; background: #ff3333; transform: translateX(-50%); top: -16px; border-radius: 2px; } 
+        .horn-center { position: absolute; width: 50px; height: 50px; background: radial-gradient(circle, #333, #111); border-radius: 50%; border: 2px solid #000; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: inset 0 2px 5px rgba(255,255,255,0.2), 0 5px 10px rgba(0,0,0,0.5); }
         
-        /* Sleek Pedals */
         .pedals { display: flex; gap: 15px; position: relative; }
-        .btn { width: 75px; height: 75px; border-radius: 12px; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 6px 0 rgba(0,0,0,0.5); user-select: none; }
-        .btn:active { transform: translateY(6px); box-shadow: 0 0 0 rgba(0,0,0,0.5); }
-        #btnGas { background: linear-gradient(to bottom, #4facfe, #00f2fe); height: 95px; border: 1px solid #fff; }
-        #btnRev { background: linear-gradient(to bottom, #ff5858, #f09819); border: 1px solid #fff; }
-        #btnHorn { position: absolute; bottom: 115px; right: 0; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(to bottom, #f6d365, #fda085); border: 2px solid #fff; font-weight: bold; font-size: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 0 #cc7a00; color: #000; }
+        .btn { width: 75px; height: 75px; border-radius: 12px; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 0 rgba(0,0,0,0.6), 0 15px 20px rgba(0,0,0,0.4); user-select: none; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.2); }
+        .btn:active { transform: translateY(8px); box-shadow: 0 0 0 rgba(0,0,0,0.6), 0 5px 10px rgba(0,0,0,0.4); }
+        #btnGas { background: linear-gradient(to bottom, #00c6ff, #0072ff); height: 100px; }
+        #btnRev { background: linear-gradient(to bottom, #ff512f, #dd2476); }
+        #btnHorn { position: absolute; bottom: 120px; right: 0; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(to bottom, #f6d365, #fda085); font-weight: bold; font-size: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 0 #b33900; color: #000; text-shadow: none; border: 2px solid #fff; }
         #btnHorn:active { transform: translateY(6px); box-shadow: none; }
 
-        #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #002244, #000); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        #startBtn { padding: 15px 40px; font-size: 24px; font-weight: bold; background: #00e5ff; color: #000; border: none; border-radius: 8px; box-shadow: 0 0 20px #00e5ff; margin-top: 20px; cursor: pointer; }
+        #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #001122, #000); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        #startBtn { padding: 15px 50px; font-size: 26px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #0072ff); color: #fff; border: none; border-radius: 8px; box-shadow: 0 0 30px rgba(0,229,255,0.6); margin-top: 20px; text-shadow: 1px 1px 2px #000; cursor: pointer; }
+        #settingsBtn { position: absolute; top: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 2px solid #333; font-size: 22px; display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        #settingsMenu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; border: 3px solid #333; z-index: 200; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+        #installBtn, #closeSettings { background: #28a745; color: white; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; box-shadow: 0 4px 0 #1e7e34; }
     </style>
 </head>
 <body>
     <div id="cameraArea"></div>
-    
-    <div id="minimapContainer"><canvas id="minimap"></canvas></div>
     <div id="uiTop">
-        <div class="hud-box" id="speedDisplay">⚡ 0 KM/H</div>
-        <div class="hud-box gold" id="coinDisplay">💰 0</div>
-    </div>
-    
-    <div id="startScreen">
-        <h1 style="font-size: 45px; margin: 0; color: #00e5ff; text-shadow: 0 0 15px #00e5ff;">URBAN DRIFT</h1>
-        <button id="startBtn">PLAY NOW</button>
-    </div>
-    
-    <div id="controls">
-        <div id="steeringArea">
-            <div id="steeringWheel"><div class="horn-center"></div></div>
+        <div class="hud-left">
+            <div id="minimapContainer"><canvas id="minimap"></canvas></div>
+            <div class="hud-panel gold">💰 <span class="hud-value" style="color:#ffc107;" id="coinDisplay">0</span></div>
         </div>
+        <div class="hud-panel">⚡ <span class="hud-value" style="color:#00e5ff;" id="speedDisplay">0</span> KM/H</div>
+    </div>
+    <div id="startScreen">
+        <h1 style="font-size: 50px; margin: 0; color: #fff; text-shadow: 0 0 20px #00e5ff, 0 0 40px #0072ff; font-style: italic;">URBAN DRIFT</h1>
+        <p style="color: #aaa; font-size: 18px; margin-bottom: 30px;">AAA Mobile Experience</p>
+        <button id="startBtn">START ENGINE</button>
+    </div>
+    <div id="settingsBtn">⚙️</div>
+    <div id="settingsMenu"><h2>Settings</h2><button id="installBtn" style="display:none;">📲 Install Game</button><br><button id="closeSettings" style="background:#dc3545; box-shadow: 0 4px 0 #a71d2a;">Close</button></div>
+    <div id="controls">
+        <div id="steeringArea"><div id="steeringWheel"><div class="horn-center"></div></div></div>
         <div class="pedals">
             <div id="btnHorn">HORN</div>
             <div class="btn" id="btnRev">BRAKE</div>
@@ -67,139 +67,169 @@
     <script type="module">
         import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
 
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+        let deferredPrompt; const installBtn = document.getElementById('installBtn');
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'inline-block'; });
+        installBtn.addEventListener('click', async () => { if(deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if(outcome === 'accepted') installBtn.style.display = 'none'; deferredPrompt = null; } });
+        document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'block');
+        document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'none');
+
+        // --- AAA SETUP ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xa0e0ff); 
-        scene.fog = new THREE.FogExp2(0xa0e0ff, 0.004);
+        scene.background = new THREE.Color(0x7ec0ee); 
+        scene.fog = new THREE.FogExp2(0x7ec0ee, 0.003); // Lighter fog for better distance viewing
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.enabled = true; 
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
+        // HOLLYWOOD RENDERING UPGRADE: ACES Filmic Tone Mapping makes light react realistically!
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
         document.body.appendChild(renderer.domElement);
 
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6); scene.add(hemiLight);
-        const sunLight = new THREE.DirectionalLight(0xffffee, 0.9);
+        // Richer Ambient Light (Simulating sky reflection)
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444455, 0.8); scene.add(hemiLight);
+        // Warmer, sharper sunlight
+        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
         sunLight.position.set(100, 150, -50); sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024;
-        const d = 100; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
-        sunLight.shadow.bias = -0.0005; scene.add(sunLight);
-        // --- CRISP ROAD TEXTURE ---
+        sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048; // Ultra-crisp shadows
+        const d = 120; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
+        sunLight.shadow.bias = -0.0005; scene.add(sunLight);// --- HIGH DETAIL TEXTURES ---
         function createRoadTexture() {
-            const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
-            const ctx = canvas.getContext('2d'); ctx.fillStyle = '#222'; ctx.fillRect(0, 0, 256, 256); 
-            ctx.fillStyle = '#fff'; ctx.fillRect(120, 0, 16, 128); 
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d'); 
+            ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, 512, 512); 
+            // Procedural Asphalt Noise!
+            for(let i=0; i<3000; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#222' : '#111';
+                ctx.fillRect(Math.random()*512, Math.random()*512, 3, 3);
+            }
+            ctx.fillStyle = '#ffffff'; for(let i=0; i<512; i+=80) ctx.fillRect(246, i, 20, 40); 
             const tex = new THREE.CanvasTexture(canvas); 
             tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; 
-            tex.magFilter = THREE.NearestFilter; tex.needsUpdate = true; return tex;
+            tex.magFilter = THREE.NearestFilter; tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); return tex;
+        }
+        function createWindowTexture() {
+            const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d'); ctx.fillStyle = '#0a1015'; ctx.fillRect(0, 0, 256, 256); 
+            for(let x=10; x<256; x+=40) { for(let y=10; y<256; y+=50) { ctx.fillStyle = Math.random() > 0.6 ? '#ffeba1' : '#112233'; ctx.fillRect(x, y, 20, 30); } }
+            const tex = new THREE.CanvasTexture(canvas); tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; tex.magFilter = THREE.NearestFilter; return tex;
         }
         const roadTexture = createRoadTexture(); roadTexture.repeat.set(40, 40);
+        const windowTexture = createWindowTexture(); windowTexture.repeat.set(2, 4);
 
-        // --- SILVER SPORTS CAR W/ BLUE STRIPES ---
+        // --- TRUE AAA CAR (Clearcoat Paint & Transparent Glass) ---
         const car = new THREE.Group();
         const chassis = new THREE.Group(); 
-        const silverMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.1, metalness: 0.8 });
-        const blueStripeMat = new THREE.MeshStandardMaterial({ color: 0x0044ff, roughness: 0.2, metalness: 0.3 });
-        const blackGlass = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.05, metalness: 0.9 });
         
-        // Main Body (Sleeker)
-        const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.5, 4.6), silverMat); 
+        // MeshPhysicalMaterial gives it that wet, glossy car paint look!
+        const silverPaint = new THREE.MeshPhysicalMaterial({ 
+            color: 0xdddddd, metalness: 0.7, roughness: 0.2, 
+            clearcoat: 1.0, clearcoatRoughness: 0.1 
+        });
+        const blueStripeMat = new THREE.MeshPhysicalMaterial({ 
+            color: 0x0044ff, metalness: 0.5, roughness: 0.3, clearcoat: 1.0 
+        });
+        // Real transparent tinted glass!
+        const glassMat = new THREE.MeshPhysicalMaterial({ 
+            color: 0x000000, metalness: 0.9, roughness: 0.0, 
+            transmission: 0.8, transparent: true, opacity: 1 
+        });
+        
+        const body = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.5, 4.6), silverPaint); 
         body.position.y = 0.5; body.castShadow = true; chassis.add(body);
         
-        // Blue Racing Stripes
-        const stripe1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.52, 4.61), blueStripeMat); stripe1.position.set(-0.3, 0.5, 0); chassis.add(stripe1);
-        const stripe2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.52, 4.61), blueStripeMat); stripe2.position.set(0.3, 0.5, 0); chassis.add(stripe2);
+        const stripe1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.52, 4.61), blueStripeMat); stripe1.position.set(-0.35, 0.5, 0); chassis.add(stripe1);
+        const stripe2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.52, 4.61), blueStripeMat); stripe2.position.set(0.35, 0.5, 0); chassis.add(stripe2);
 
-        // Clean Cabin
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 2.2), blackGlass);
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 2.2), glassMat);
         cabin.position.set(0, 1.0, -0.2); cabin.castShadow = true; chassis.add(cabin);
-        const cabinStripe1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.52, 2.21), blueStripeMat); cabinStripe1.position.set(-0.3, 1.0, -0.2); chassis.add(cabinStripe1);
-        const cabinStripe2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.52, 2.21), blueStripeMat); cabinStripe2.position.set(0.3, 1.0, -0.2); chassis.add(cabinStripe2);
 
-        // Massive Rear Spoiler
-        const spoilerWing = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 0.5), blackGlass); spoilerWing.position.set(0, 1.2, -2.1); chassis.add(spoilerWing);
-        const strutL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), blackGlass); strutL.position.set(-0.7, 0.95, -2.1); chassis.add(strutL);
-        const strutR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), blackGlass); strutR.position.set(0.7, 0.95, -2.1); chassis.add(strutR);
+        const spoilerWing = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 0.5), new THREE.MeshStandardMaterial({color: 0x111})); spoilerWing.position.set(0, 1.25, -2.1); spoilerWing.castShadow = true; chassis.add(spoilerWing);
+        const strutL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), silverPaint); strutL.position.set(-0.7, 1.0, -2.1); chassis.add(strutL);
+        const strutR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), silverPaint); strutR.position.set(0.7, 1.0, -2.1); chassis.add(strutR);
+        const splitter = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 0.4), new THREE.MeshStandardMaterial({color: 0x111})); splitter.position.set(0, 0.25, 2.3); chassis.add(splitter);
 
-        // Front Splitter / Bumper
-        const splitter = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.1, 0.4), blackGlass); splitter.position.set(0, 0.3, 2.3); chassis.add(splitter);
-
-        window.headLightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xddffff, emissiveIntensity: 1 });
+        window.headLightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xddffff, emissiveIntensity: 2 });
         const hlLeft = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.1), window.headLightMat); hlLeft.position.set(-0.7, 0.55, 2.3); chassis.add(hlLeft);
         const hlRight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.1), window.headLightMat); hlRight.position.set(0.7, 0.55, 2.3); chassis.add(hlRight);
-        const carLight = new THREE.PointLight(0xffffff, 1, 50); carLight.position.set(0, 1, 3); chassis.add(carLight);
+        
+        // Dynamic Headlight Beam
+        const carLight = new THREE.SpotLight(0xffffee, 2); 
+        carLight.position.set(0, 1, 3); carLight.target.position.set(0, 0, 20);
+        carLight.angle = Math.PI/4; carLight.penumbra = 0.5; chassis.add(carLight); chassis.add(carLight.target);
         car.add(chassis); 
 
-        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 16);
+        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 24); // Smoother tires
         const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111, roughness: 0.9 });
-        const rimMat = new THREE.MeshStandardMaterial({ color: 0x777, metalness: 0.9 });
+        const rimMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 1.0, roughness: 0.2 });
         function createWheel(x, z) {
             const pivot = new THREE.Group(); pivot.position.set(x, 0.45, z);
             const wheel = new THREE.Mesh(wheelGeo, wheelMat); wheel.rotation.z = Math.PI / 2; wheel.castShadow = true;
-            const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.42, 5), rimMat); rim.rotation.z = Math.PI / 2; // Star shaped rims!
+            const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.42, 6), rimMat); rim.rotation.z = Math.PI / 2; 
             pivot.add(wheel); pivot.add(rim); car.add(pivot); return pivot;
         }
-        const frontLeftWheel = createWheel(-1.1, 1.4); const frontRightWheel = createWheel(1.1, 1.4);
-        createWheel(-1.1, -1.4); createWheel(1.1, -1.4);
+        const frontLeftWheel = createWheel(-1.15, 1.4); const frontRightWheel = createWheel(1.15, 1.4);
+        createWheel(-1.15, -1.4); createWheel(1.15, -1.4);
         scene.add(car);
 
         // --- MAP ZONES ---
-        const colors = { sidewalk: 0xcccccc, sand: 0xe6c27a, ocean: 0x0288d1 };
+        const colors = { sidewalk: 0xdddddd, sand: 0xe6c27a, ocean: 0x0288d1, hospitalBlue: 0x29b6f6, awningRed: 0xe53935 };
         const cityGround = new THREE.Mesh(new THREE.PlaneGeometry(280, 400), new THREE.MeshStandardMaterial({ map: roadTexture, roughness: 0.8 }));
         cityGround.rotation.x = -Math.PI / 2; cityGround.position.set(-60, 0, 0); cityGround.receiveShadow = true; scene.add(cityGround);
         const sand = new THREE.Mesh(new THREE.PlaneGeometry(100, 400), new THREE.MeshStandardMaterial({ color: colors.sand, roughness: 1 }));
         sand.rotation.x = -Math.PI / 2; sand.position.set(130, 0.05, 0); sand.receiveShadow = true; scene.add(sand);
+        
+        // Transparent Water!
+        const ocean = new THREE.Mesh(new THREE.PlaneGeometry(200, 400), new THREE.MeshPhysicalMaterial({ color: colors.ocean, transparent: true, opacity: 0.8, transmission: 0.9, roughness: 0.1 }));
+        ocean.rotation.x = -Math.PI / 2; ocean.position.set(280, -0.3, 0); scene.add(ocean);
 
         // --- DETAILED BUILDINGS ---
         const buildingColliders = []; const coins = []; const blockSize = 40; 
         
         function spawnCoin(x, z) {
-            const coin = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.2, 16), new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x332200, metalness: 1 }));
+            const coin = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.2, 16), new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0x554400, metalness: 1, roughness: 0.1 }));
             coin.rotation.x = Math.PI / 2; coin.position.set(x, 1.5, z); scene.add(coin);
             coins.push({ mesh: coin, hitBox: new THREE.Box3() });
         }
 
         function createTree(x, z) {
             const tree = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 3), new THREE.MeshStandardMaterial({ color: 0x4e342e })); trunk.position.y = 1.5; trunk.castShadow = true; tree.add(trunk);
-            const leaves = new THREE.Mesh(new THREE.ConeGeometry(2.5, 5, 6), new THREE.MeshStandardMaterial({ color: 0x2e7d32, flatShading: true })); leaves.position.y = 5; leaves.castShadow = true; tree.add(leaves);
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.4, 3), new THREE.MeshStandardMaterial({ color: 0x4e342e, roughness: 1 })); trunk.position.y = 1.5; trunk.castShadow = true; tree.add(trunk);
+            const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5, 0), new THREE.MeshStandardMaterial({ color: 0x2e7d32, flatShading: true })); leaves.position.y = 4; leaves.scale.y = 1.5; leaves.castShadow = true; tree.add(leaves);
             tree.position.set(x, 0, z); scene.add(tree);
         }
 
         function createLowPolyBuilding(x, z) {
             const bldgGroup = new THREE.Group();
             const type = Math.floor(Math.random() * 4); 
-            
             const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(28, 0.4, 28), new THREE.MeshStandardMaterial({ color: colors.sidewalk })); 
             sidewalk.position.y = 0.2; sidewalk.receiveShadow = true; bldgGroup.add(sidewalk);
 
             let hitW = 16, hitD = 16;
-            
             if (type === 0) { 
-                // Pizza / Cafe
                 const body = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 16), new THREE.MeshStandardMaterial({ color: 0xDEB887 })); body.position.y = 4; body.castShadow = true; bldgGroup.add(body);
                 const awning = new THREE.Mesh(new THREE.BoxGeometry(17, 0.5, 4), new THREE.MeshStandardMaterial({ color: 0x4CAF50 })); awning.position.set(0, 5, 8.5); awning.rotation.x = -Math.PI/6; awning.castShadow = true; bldgGroup.add(awning);
             } else if (type === 1) {
-                // Tall Apartment
                 const height = 25; const body = new THREE.Mesh(new THREE.BoxGeometry(14, height, 14), new THREE.MeshStandardMaterial({ color: 0xe0e0e0 })); body.position.y = height/2; body.castShadow = true; bldgGroup.add(body);
-                for(let i=5; i<height; i+=5) { const balc = new THREE.Mesh(new THREE.BoxGeometry(10, 1, 2), new THREE.MeshStandardMaterial({ color: 0x555 })); balc.position.set(0, i, 7.5); bldgGroup.add(balc); }
+                for(let i=5; i<height; i+=5) { const balc = new THREE.Mesh(new THREE.BoxGeometry(10, 1, 2), new THREE.MeshStandardMaterial({ color: 0x444 })); balc.position.set(0, i, 7.5); balc.castShadow = true; bldgGroup.add(balc); }
             } else if (type === 2) {
-                // Hospital
                 const body = new THREE.Mesh(new THREE.BoxGeometry(18, 14, 14), new THREE.MeshStandardMaterial({ color: 0xffffff })); body.position.y = 7; body.castShadow = true; bldgGroup.add(body);
                 const stripe = new THREE.Mesh(new THREE.BoxGeometry(18.2, 1.5, 14.2), new THREE.MeshStandardMaterial({ color: 0xe53935 })); stripe.position.y = 10; bldgGroup.add(stripe);
+                const acUnit = new THREE.Mesh(new THREE.BoxGeometry(3, 2, 3), new THREE.MeshStandardMaterial({ color: 0x999 })); acUnit.position.set(3, 15, 0); acUnit.castShadow = true; bldgGroup.add(acUnit);
                 hitW = 18;
             } else {
-                // Bank
-                const base = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 12), new THREE.MeshStandardMaterial({ color: 0x90A4AE })); base.position.set(0, 5, -2); base.castShadow = true; bldgGroup.add(base);
-                const roof = new THREE.Mesh(new THREE.ConeGeometry(12, 6, 4), new THREE.MeshStandardMaterial({ color: 0x3E2723 })); roof.position.set(0, 13, 0); roof.rotation.y = Math.PI/4; roof.castShadow = true; bldgGroup.add(roof);
-                for(let p=-6; p<=6; p+=4) { const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 10), new THREE.MeshStandardMaterial({ color: 0xfff })); pillar.position.set(p, 5, 5); bldgGroup.add(pillar); }
+                const body = new THREE.Mesh(new THREE.BoxGeometry(14, 20, 14), new THREE.MeshStandardMaterial({ map: windowTexture, metalness: 0.3 })); body.position.y = 10; body.castShadow = true; bldgGroup.add(body);
             }
 
             bldgGroup.rotation.y = (Math.floor(Math.random() * 4)) * (Math.PI / 2); bldgGroup.position.set(x, 0, z); scene.add(bldgGroup);
-            
-            // Hitbox covers walls only
-            const hitBox = new THREE.Box3(); hitBox.setFromCenterAndSize(new THREE.Vector3(x, 5, z), new THREE.Vector3(hitW, 20, hitD));
-            buildingColliders.push(hitBox);
+            const hitBox = new THREE.Box3(); hitBox.setFromCenterAndSize(new THREE.Vector3(x, 5, z), new THREE.Vector3(hitW, 20, hitD)); buildingColliders.push(hitBox);
 
-            if (Math.random() > 0.6) createTree(x + 12, z + 12);
+            if (Math.random() > 0.4) createTree(x + 12, z + 12);
             if (Math.random() > 0.5) spawnCoin(x + blockSize/2, z);
         }
 
@@ -207,8 +237,7 @@
             for (let z = -120; z <= 120; z += blockSize) {
                 if (Math.abs(x) > 10 || Math.abs(z) > 10) createLowPolyBuilding(x, z);
             }
-        }
-        // --- CONTROLS, PARTICLES & LOGIC ---
+        }// --- CONTROLS, PARTICLES & LOGIC ---
         let speed = 0, score = 0, acceleration = 0.02, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
         let input = { gas: false, rev: false, horn: false }; 
         const particles = []; const smokeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3); const smokeMat = new THREE.MeshLambertMaterial({ color: 0x999999, transparent: true, opacity: 0.8 });
@@ -243,14 +272,13 @@
             document.getElementById('startScreen').style.display = 'none'; 
             document.getElementById('controls').style.display = 'flex';
             document.getElementById('uiTop').style.display = 'flex';
-            document.getElementById('minimapContainer').style.display = 'block';
         });
 
         const mapCanvas = document.getElementById('minimap'); const ctx = mapCanvas.getContext('2d');
         function updateMinimap() {
             ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
             ctx.fillStyle = '#00e5ff'; ctx.beginPath(); ctx.arc(55, 55, 4, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#777';
+            ctx.fillStyle = '#999';
             for (let x = -120; x <= 120; x += blockSize) {
                 for (let z = -120; z <= 120; z += blockSize) {
                     const relX = (x - car.position.x) * 0.3 + 55; const relZ = (z - car.position.z) * 0.3 + 55;
@@ -305,6 +333,10 @@
                     car.position.x = oldX - (Math.sin(car.rotation.y) * 0.2); car.position.z = oldZ - (Math.cos(car.rotation.y) * 0.2); speed = 0; break;
                 }
             }
+
+            // DYNAMIC CAMERA FOV: Gives a massive sense of speed!
+            camera.fov = THREE.MathUtils.lerp(camera.fov, 60 + (Math.abs(speed) * 30), 0.1);
+            camera.updateProjectionMatrix();
 
             if ((input.gas || input.rev) && !isDraggingCamera) cameraOrbitAngle *= 0.9; 
             const finalCamAngle = car.rotation.y + cameraOrbitAngle;
