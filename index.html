@@ -3,44 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Mobile Driving</title>
+    <link rel="manifest" href="manifest.json">
+    <title>Ultimate Mobile Driving</title>
     <style>
-        body { 
-            margin: 0; overflow: hidden; background-color: #87CEEB; 
-            user-select: none; -webkit-user-select: none; font-family: sans-serif;
-        }
-        /* Top Right Settings Button */
-        #settingsBtn {
-            position: absolute; top: 15px; right: 15px;
-            width: 45px; height: 45px; border-radius: 50%;
-            background: rgba(255,255,255,0.8); border: 2px solid #333;
-            font-size: 24px; display: flex; align-items: center; justify-content: center;
-            z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        #startBtn {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            padding: 20px 40px; font-size: 24px; font-weight: bold;
-            background: #ff5722; color: white; border: none; border-radius: 10px; z-index: 100;
-        }
-        #controls { 
-            position: absolute; bottom: 20px; width: 100%; display: none; 
-            justify-content: space-between; align-items: flex-end; padding: 0 20px; box-sizing: border-box;
-        }
-        /* Steering Slider UI */
-        #steeringContainer {
-            width: 150px; background: rgba(0,0,0,0.4); border-radius: 30px; padding: 10px;
-            text-align: center; color: white; font-weight: bold; font-size: 12px;
-        }
-        input[type=range] {
-            width: 100%; margin-top: 5px;
-        }
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; user-select: none; -webkit-user-select: none; font-family: sans-serif; }
+        
+        #startBtn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; font-size: 24px; font-weight: bold; background: #ff5722; color: white; border: none; border-radius: 10px; z-index: 100; }
+        
+        /* Settings UI */
+        #settingsBtn { position: absolute; top: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 2px solid #333; font-size: 24px; display: flex; align-items: center; justify-content: center; z-index: 100; }
+        #settingsMenu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; border: 3px solid #333; z-index: 200; text-align: center; }
+        #installBtn { display: none; background: #28a745; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 8px; font-weight: bold; margin-top: 15px; }
+        #closeSettings { background: #dc3545; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; margin-top: 10px; }
+
+        #controls { position: absolute; bottom: 20px; width: 100%; display: none; justify-content: space-between; align-items: flex-end; padding: 0 30px; box-sizing: border-box; }
+        
+        /* Realistic Steering Wheel */
+        #steeringArea { width: 140px; height: 140px; background: rgba(0,0,0,0.3); border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; touch-action: none; }
+        #steeringWheel { font-size: 100px; line-height: 1; pointer-events: none; transition: transform 0.1s ease-out; }
+        
         .pedals { display: flex; gap: 15px; }
-        .btn { 
-            width: 70px; height: 70px; border-radius: 10px; 
-            background: rgba(255, 255, 255, 0.7); border: 3px solid #333; 
-            font-size: 14px; font-weight: bold; display: flex; align-items: center; 
-            justify-content: center; touch-action: none; box-shadow: 0 4px 0 #555;
-        }
+        .btn { width: 70px; height: 70px; border-radius: 10px; background: rgba(255, 255, 255, 0.7); border: 3px solid #333; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; touch-action: none; box-shadow: 0 4px 0 #555; }
         .btn:active { transform: translateY(4px); box-shadow: none; }
         #btnGas { background: rgba(40, 167, 69, 0.9); color: white; height: 90px; }
         #btnRev { background: rgba(220, 53, 69, 0.9); color: white; }
@@ -49,12 +32,17 @@
 <body>
 
     <div id="settingsBtn">⚙️</div>
+    <div id="settingsMenu">
+        <h2>Game Settings</h2>
+        <button id="installBtn">📲 Install Game to Phone</button><br>
+        <button id="closeSettings">Close</button>
+    </div>
+
     <button id="startBtn">START ENGINE</button>
 
     <div id="controls">
-        <div id="steeringContainer">
-            STEERING
-            <input type="range" id="steerWheel" min="-1" max="1" step="0.01" value="0">
+        <div id="steeringArea">
+            <div id="steeringWheel">🛞</div>
         </div>
         <div class="pedals">
             <div class="btn" id="btnRev">BRAKE</div>
@@ -65,10 +53,33 @@
     <script type="module">
         import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
 
-        // --- 1. SETUP ---
+        // --- 1. PWA INSTALL LOGIC ---
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'inline-block';
+        });
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') installBtn.style.display = 'none';
+                deferredPrompt = null;
+            }
+        });
+
+        // Settings Menu Logic
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            document.getElementById('settingsMenu').style.display = 'block';
+        });
+        document.getElementById('closeSettings').addEventListener('click', () => {
+            document.getElementById('settingsMenu').style.display = 'none';
+        });
+
+        // --- 2. SETUP & GRAPHICS ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x4aa8ff);
-        scene.fog = new THREE.FogExp2(0x4aa8ff, 0.012);
+        scene.background = new THREE.Color(0x60A3FF);
+        scene.fog = new THREE.FogExp2(0x60A3FF, 0.008);
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -76,110 +87,100 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // Lighting
         scene.add(new THREE.AmbientLight(0xffffff, 0.5));
         const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        sunLight.position.set(50, 80, 50);
-        sunLight.castShadow = true;
+        sunLight.position.set(50, 80, 50); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024;
-        sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 200;
-        const d = 50;
-        sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d;
+        const d = 50; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d;
         sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
         scene.add(sunLight);
 
-        // --- 2. DETAILED CAR MODEL ---
+        // --- 3. CAR MODEL ---
         const car = new THREE.Group();
-        
-        // Body
         const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff3300, roughness: 0.2, metalness: 0.6 });
         const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, 4.5), bodyMat);
         body.position.y = 0.6; body.castShadow = true; car.add(body);
-        
-        // Cabin (Black Glass)
         const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.9 });
         const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 2.2), glassMat);
         cabin.position.set(0, 1.15, -0.3); cabin.castShadow = true; car.add(cabin);
-        
-        // Spoiler
-        const spoiler = new THREE.Mesh(new THREE.BoxGeometry(2, 0.1, 0.5), bodyMat);
-        spoiler.position.set(0, 1.1, -2); spoiler.castShadow = true; car.add(spoiler);
-        const spoilerSupport = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.3, 0.2), glassMat);
-        spoilerSupport.position.set(0, 0.9, -2); car.add(spoilerSupport);
-
-        // Wheels
-        const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
-        const wheelPositions = [[-1.1, 0.4, 1.4], [1.1, 0.4, 1.4], [-1.1, 0.4, -1.5], [1.1, 0.4, -1.5]];
-        wheelPositions.forEach(pos => {
-            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-            wheel.rotation.z = Math.PI / 2; wheel.position.set(...pos);
-            wheel.castShadow = true; car.add(wheel);
-        });
-
         scene.add(car);
 
-        // --- 3. PROCEDURAL TEXTURES (Road Lines) ---
-        function createRoadTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256; canvas.height = 256;
-            const context = canvas.getContext('2d');
-            context.fillStyle = '#333'; context.fillRect(0, 0, 256, 256); // Dark asphalt
-            context.fillStyle = '#fff'; context.fillRect(120, 0, 16, 100); // White dashes
-            context.fillRect(120, 150, 16, 100);
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
-            return texture;
-        }
-
-        // --- 4. IMPROVED MAP & BUILDINGS WITH COLLISION ---
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshStandardMaterial({ color: 0x4CAF50 }));
+        // --- 4. DIVERSE WORLD GENERATION ---
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshStandardMaterial({ color: 0x4CAF50 }));
         ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
-        const roadTex = createRoadTexture();
-        const buildingColliders = []; // Array to hold invisible walls
+        const buildingColliders = [];
         const blockSize = 40;
 
+        // Helper: Create Tree
+        function createTree(x, z) {
+            const tree = new THREE.Group();
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 3), new THREE.MeshStandardMaterial({ color: 0x8B4513 }));
+            trunk.position.y = 1.5; tree.add(trunk);
+            const leaves = new THREE.Mesh(new THREE.SphereGeometry(3), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
+            leaves.position.y = 4; tree.add(leaves);
+            tree.position.set(x, 0, z); trunk.castShadow = true; leaves.castShadow = true;
+            scene.add(tree);
+        }
+
+        // Generate City, Parks, and Houses
         for (let x = -160; x <= 160; x += blockSize) {
             for (let z = -160; z <= 160; z += blockSize) {
                 // Roads
-                const roadMat = new THREE.MeshStandardMaterial({ map: roadTex, roughness: 0.8 });
+                const roadMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 });
                 const roadX = new THREE.Mesh(new THREE.PlaneGeometry(blockSize, 12), roadMat);
-                roadX.rotation.x = -Math.PI / 2; roadX.position.set(x, 0.01, z);
-                roadX.receiveShadow = true; scene.add(roadX);
-
+                roadX.rotation.x = -Math.PI / 2; roadX.position.set(x, 0.01, z); scene.add(roadX);
                 const roadZ = new THREE.Mesh(new THREE.PlaneGeometry(blockSize, 12), roadMat);
-                roadZ.rotation.x = -Math.PI / 2; roadZ.rotation.z = Math.PI / 2;
-                roadZ.position.set(x, 0.02, z); roadZ.receiveShadow = true; scene.add(roadZ);
+                roadZ.rotation.x = -Math.PI / 2; roadZ.rotation.z = Math.PI / 2; roadZ.position.set(x, 0.02, z); scene.add(roadZ);
 
-                // Buildings (Avoid middle spawn area)
+                // Blocks
                 if (Math.abs(x) > 15 || Math.abs(z) > 15) {
-                    const bHeight = Math.random() * 20 + 10;
-                    const bWidth = 18; // Make them fit nicely in blocks
-                    const bMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.5 });
-                    const building = new THREE.Mesh(new THREE.BoxGeometry(bWidth, bHeight, bWidth), bMat);
-                    building.position.set(x + 10, bHeight / 2, z + 10);
-                    building.castShadow = true; building.receiveShadow = true;
-                    scene.add(building);
-
-                    // COLLISION: Create a bounding box for each building
-                    const bBox = new THREE.Box3().setFromObject(building);
-                    buildingColliders.push(bBox);
+                    const blockType = Math.random();
+                    
+                    if (blockType < 0.2) { 
+                        // PARK
+                        createTree(x + 10, z + 10); createTree(x - 5, z + 15);
+                    } else if (blockType < 0.6) { 
+                        // HOUSES (Box + Triangle Roof)
+                        const hMat = new THREE.MeshStandardMaterial({ color: 0xf5deb3 });
+                        const house = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 10), hMat);
+                        house.position.set(x + 10, 4, z + 10); house.castShadow = true; scene.add(house);
+                        const roof = new THREE.Mesh(new THREE.ConeGeometry(8, 6, 4), new THREE.MeshStandardMaterial({ color: 0x8B0000 }));
+                        roof.position.set(x + 10, 11, z + 10); roof.rotation.y = Math.PI/4; scene.add(roof);
+                        buildingColliders.push(new THREE.Box3().setFromObject(house));
+                    } else { 
+                        // GLASS SKYSCRAPERS
+                        const height = Math.random() * 30 + 15;
+                        const gMat = new THREE.MeshStandardMaterial({ color: 0x88ccff, metalness: 0.8, roughness: 0.1 });
+                        const bldg = new THREE.Mesh(new THREE.BoxGeometry(16, height, 16), gMat);
+                        bldg.position.set(x + 10, height/2, z + 10); bldg.castShadow = true; scene.add(bldg);
+                        buildingColliders.push(new THREE.Box3().setFromObject(bldg));
+                    }
                 }
             }
         }
 
-        // Map Boundary Walls
+        // Mountains at borders
+        for (let i = -200; i <= 200; i += 50) {
+            const mMat = new THREE.MeshStandardMaterial({ color: 0x555555 });
+            const mount1 = new THREE.Mesh(new THREE.ConeGeometry(40, 80, 4), mMat);
+            mount1.position.set(i, 40, -220); scene.add(mount1);
+            const mount2 = new THREE.Mesh(new THREE.ConeGeometry(40, 80, 4), mMat);
+            mount2.position.set(i, 40, 220); scene.add(mount2);
+        }
+
         const mapLimit = 190;
 
-        // --- 5. PHYSICS & SMOOTH CONTROLS ---
+        // --- 5. SLOWER PHYSICS & REAL STEERING WHEEL ---
         let speed = 0;
-        const maxSpeed = 0.8;
-        const acceleration = 0.02;
-        const friction = 0.97; 
+        const maxSpeed = 0.4; // SLOWER CAR
+        const acceleration = 0.008; // SMOOTHER ACCELERATION
+        const friction = 0.98; 
+        
         let input = { gas: false, rev: false };
+        let steeringAngle = 0; // The actual angle of the steering wheel
 
-        // Buttons
+        // Pedals
         const bindBtn = (id, key) => {
             const btn = document.getElementById(id);
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); input[key] = true; });
@@ -187,18 +188,38 @@
         };
         bindBtn('btnGas', 'gas'); bindBtn('btnRev', 'rev');
 
-        // Settings Button
-        document.getElementById('settingsBtn').addEventListener('click', () => {
-            alert("Settings Menu Placeholder! You can add quality or sound options here later.");
+        // Circular Steering Logic
+        const steeringArea = document.getElementById('steeringArea');
+        const steeringUI = document.getElementById('steeringWheel');
+        let isSteering = false;
+
+        steeringArea.addEventListener('touchstart', (e) => { e.preventDefault(); isSteering = true; });
+        steeringArea.addEventListener('touchend', (e) => { 
+            e.preventDefault(); isSteering = false; 
+            steeringAngle = 0; // Snap back to center
+            steeringUI.style.transform = `rotate(0deg)`;
+        });
+        steeringArea.addEventListener('touchmove', (e) => {
+            if (!isSteering) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = steeringArea.getBoundingClientRect();
+            // Find center of the wheel UI
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            // Calculate angle using Math.atan2
+            const angleRad = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
+            let angleDeg = angleRad * (180 / Math.PI) + 90; // Adjust so top is 0 degrees
+            
+            // Limit steering wheel turn to roughly -90 to +90 degrees
+            if (angleDeg > 180) angleDeg -= 360;
+            if (angleDeg > 90) angleDeg = 90;
+            if (angleDeg < -90) angleDeg = -90;
+
+            steeringUI.style.transform = `rotate(${angleDeg}deg)`;
+            steeringAngle = angleDeg / 90; // Convert to a -1 to 1 value for the car physics
         });
 
-        // Steering Wheel Logic
-        const steerWheel = document.getElementById('steerWheel');
-        steerWheel.addEventListener('touchend', () => {
-            steerWheel.value = 0; // Snap wheel back to center when you let go!
-        });
-
-        // Start Game
         document.getElementById('startBtn').addEventListener('click', () => {
             document.documentElement.requestFullscreen().catch(e => console.log(e));
             try { screen.orientation.lock('landscape'); } catch(e) {}
@@ -206,81 +227,53 @@
             document.getElementById('controls').style.display = 'flex';
         });
 
-        // --- 6. GAME LOOP WITH COLLISION ---
+        // --- 6. GAME LOOP ---
         const cameraTarget = new THREE.Vector3();
-        const carBox = new THREE.Box3(); // The car's invisible hitbox
+        const carBox = new THREE.Box3();
 
         function animate() {
             requestAnimationFrame(animate);
 
-            // Save old position in case we crash
-            const oldX = car.position.x;
-            const oldZ = car.position.z;
+            const oldX = car.position.x; const oldZ = car.position.z;
 
-            // Engine Physics
             if (input.gas) speed += acceleration;
             if (input.rev) speed -= acceleration;
             speed *= friction; 
             if (speed > maxSpeed) speed = maxSpeed;
             if (speed < -maxSpeed / 2) speed = -maxSpeed / 2;
 
-            // Steering value directly from our UI slider
-            const turnValue = parseFloat(steerWheel.value); 
-            car.rotation.y -= (turnValue * 0.06) * (speed > 0 ? 1 : -1); // Turn slower if going slow
+            // Apply steering wheel angle to car rotation
+            car.rotation.y -= (steeringAngle * 0.04) * (speed > 0 ? 1 : -1);
 
-            // Move Car
             car.position.x += Math.sin(car.rotation.y) * speed;
             car.position.z += Math.cos(car.rotation.y) * speed;
 
-            // Map Boundaries (Invisible Wall at edge of map)
+            // Boundaries
             if (car.position.x > mapLimit) car.position.x = mapLimit;
             if (car.position.x < -mapLimit) car.position.x = -mapLimit;
             if (car.position.z > mapLimit) car.position.z = mapLimit;
             if (car.position.z < -mapLimit) car.position.z = -mapLimit;
 
-            // --- COLLISION DETECTION ---
-            // Update the car's hitbox position based on its new location
-            carBox.setFromObject(car); 
-            
-            // Make the hitbox slightly smaller to forgive edge scraping
-            carBox.expandByScalar(-0.2); 
-
-            let crashed = false;
+            // Collision
+            carBox.setFromObject(car); carBox.expandByScalar(-0.2); 
             for (let i = 0; i < buildingColliders.length; i++) {
                 if (carBox.intersectsBox(buildingColliders[i])) {
-                    crashed = true;
-                    break; // Stop checking if we already hit one
+                    car.position.x = oldX - (Math.sin(car.rotation.y) * 0.2);
+                    car.position.z = oldZ - (Math.cos(car.rotation.y) * 0.2);
+                    speed = 0; break;
                 }
             }
 
-            if (crashed) {
-                // Oh no! We hit a building. 
-                // Bounce back slightly and lose all speed.
-                car.position.x = oldX - (Math.sin(car.rotation.y) * 0.2);
-                car.position.z = oldZ - (Math.cos(car.rotation.y) * 0.2);
-                speed = 0; 
-            }
-
-            // Smooth Camera
-            const idealOffset = new THREE.Vector3(
-                car.position.x - Math.sin(car.rotation.y) * 12,
-                car.position.y + 6,
-                car.position.z - Math.cos(car.rotation.y) * 12
-            );
+            const idealOffset = new THREE.Vector3(car.position.x - Math.sin(car.rotation.y)*10, car.position.y + 5, car.position.z - Math.cos(car.rotation.y)*10);
             camera.position.lerp(idealOffset, 0.1);
-            cameraTarget.lerp(car.position, 0.2);
-            camera.lookAt(cameraTarget);
-
-            // Make Sun follow the car to save memory
-            sunLight.position.set(car.position.x + 50, 80, car.position.z + 50);
-            sunLight.target = car;
+            cameraTarget.lerp(car.position, 0.2); camera.lookAt(cameraTarget);
+            sunLight.position.set(car.position.x + 50, 80, car.position.z + 50); sunLight.target = car;
 
             renderer.render(scene, camera);
         }
 
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
