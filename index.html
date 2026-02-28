@@ -4,22 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    <title>Urban Drift Optimized</title>
+    <title>Open World Terrain</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; }
+        
         #uiTop { position: absolute; top: 15px; left: 15px; width: calc(100% - 30px); display: none; justify-content: space-between; align-items: flex-start; z-index: 60; pointer-events: none; }
         .hud-left { display: flex; flex-direction: column; gap: 10px; }
-        #minimap { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #00e5ff; background: rgba(0,10,20,0.8); box-shadow: 0 0 10px rgba(0,229,255,0.3); backdrop-filter: blur(3px); }
+        #minimap { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #00e5ff; background: rgba(0,10,20,0.8); box-shadow: 0 0 15px rgba(0,229,255,0.4); backdrop-filter: blur(3px); }
         .hud-panel { background: rgba(0, 20, 40, 0.85); border: 2px solid #00e5ff; border-radius: 12px; padding: 5px 15px; color: #fff; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 8px; }
         .hud-panel.gold { border-color: #ffc107; }
         .hud-value { color: #fff; font-family: monospace; font-size: 22px; text-shadow: 0 0 5px currentColor; }
+        
         #cameraArea { position: absolute; top: 0; left: 0; width: 100%; height: 50%; z-index: 10; }
         #controls { position: absolute; bottom: 25px; width: 100%; display: none; justify-content: space-between; align-items: flex-end; padding: 0 30px; box-sizing: border-box; z-index: 50; }
+        
         #steeringArea { width: 150px; height: 150px; position: relative; display: flex; align-items: center; justify-content: center; touch-action: none; }
         #steeringWheel { width: 100%; height: 100%; border-radius: 50%; border: 16px solid #111; box-sizing: border-box; background: transparent; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.7), inset 0 2px 8px rgba(255,255,255,0.1); transition: transform 0.1s; }
         #steeringWheel::before { content: ''; position: absolute; top: 50%; left: -5px; right: -5px; height: 26px; background: #111; transform: translateY(-50%); }
         #steeringWheel::after { content: ''; position: absolute; top: 0; left: 50%; width: 12px; height: 16px; background: #ff3333; transform: translateX(-50%); top: -16px; } 
         .horn-center { position: absolute; width: 50px; height: 50px; background: #222; border-radius: 50%; border: 2px solid #000; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        
         .pedals { display: flex; gap: 15px; position: relative; }
         .btn { width: 75px; height: 75px; border-radius: 12px; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 0 rgba(0,0,0,0.6); user-select: none; border: 2px solid rgba(255,255,255,0.2); }
         .btn:active { transform: translateY(8px); box-shadow: none; }
@@ -27,9 +31,14 @@
         #btnRev { background: linear-gradient(to bottom, #ff512f, #dd2476); }
         #btnHorn { position: absolute; bottom: 120px; right: 0; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(to bottom, #f6d365, #fda085); font-weight: bold; font-size: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 0 #b33900; color: #000; border: 2px solid #fff; }
         #btnHorn:active { transform: translateY(6px); box-shadow: none; }
+
         #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #001122, #000); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
         #startBtn { padding: 15px 50px; font-size: 26px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #0072ff); color: #fff; border: none; border-radius: 8px; box-shadow: 0 0 20px rgba(0,229,255,0.4); margin-top: 20px; }
+        
         #settingsBtn { position: absolute; top: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 2px solid #333; font-size: 22px; display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: auto; }
+        #settingsMenu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 30px; border-radius: 15px; border: 3px solid #00e5ff; z-index: 200; text-align: center; color: white; }
+        #installBtn { background: #28a745; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; display: none; }
+        #closeSettings { background: #dc3545; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -41,12 +50,21 @@
         </div>
         <div class="hud-panel">⚡ <span class="hud-value" style="color:#00e5ff;" id="speedDisplay">0</span> KM/H</div>
     </div>
+    
     <div id="startScreen">
         <h1 style="font-size: 50px; margin: 0; color: #fff; text-shadow: 0 0 20px #00e5ff;">URBAN DRIFT</h1>
-        <p style="color: #aaa; margin-bottom: 30px;">Optimized for Mobile</p>
+        <p style="color: #aaa; margin-bottom: 30px;">Hills & Beach Update</p>
         <button id="startBtn">START ENGINE</button>
     </div>
+    
     <div id="settingsBtn">⚙️</div>
+    <div id="settingsMenu">
+        <h2 style="margin-top:0;">Settings</h2>
+        <button id="installBtn">📲 Install to Phone</button>
+        <p id="manualInstallText" style="font-size: 14px; color: #aaa; background: #222; padding: 10px; border-radius: 8px;">Tap your browser's <b>Menu (⋮)</b><br>and select <b>"Add to Home screen"</b></p>
+        <button id="closeSettings">Close</button>
+    </div>
+
     <div id="controls">
         <div id="steeringArea"><div id="steeringWheel"><div class="horn-center"></div></div></div>
         <div class="pedals">
@@ -59,6 +77,13 @@
     <script type="module">
         import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
 
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+        let deferredPrompt; const installBtn = document.getElementById('installBtn');
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'inline-block'; document.getElementById('manualInstallText').style.display = 'none'; });
+        installBtn.addEventListener('click', async () => { if(deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if(outcome === 'accepted') installBtn.style.display = 'none'; deferredPrompt = null; } });
+        document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'block');
+        document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'none');
+
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x7ec0ee); 
         scene.fog = new THREE.FogExp2(0x7ec0ee, 0.0035); 
@@ -66,23 +91,17 @@
         
         const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        
-        // LAG FIX #1: Cap pixel ratio to save massive GPU power on Retina mobile screens
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.2)); 
-        
-        renderer.shadowMap.enabled = true; 
-        renderer.shadowMap.type = THREE.PCFShadowMap; // Cheaper shadows
-        renderer.outputEncoding = THREE.sRGBEncoding; 
+        renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+        renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
         document.body.appendChild(renderer.domElement);
 
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444455, 0.7); scene.add(hemiLight);
         const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.0);
         sunLight.position.set(100, 150, -50); sunLight.castShadow = true;
-        // LAG FIX #2: Lower shadow map resolution slightly
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
-        const d = 100; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
-        sunLight.shadow.bias = -0.001; scene.add(sunLight);
-        // --- CRISP TEXTURES ---
+        const d = 120; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
+        sunLight.shadow.bias = -0.001; scene.add(sunLight);// --- TEXTURES ---
         function createRoadTexture() {
             const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
             const ctx = canvas.getContext('2d'); ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, 256, 256); 
@@ -99,7 +118,7 @@
         const roadTexture = createRoadTexture(); roadTexture.repeat.set(40, 40);
         const windowTexture = createWindowTexture(); windowTexture.repeat.set(2, 4);
 
-        // --- PLAYER CAR (Keep High Detail) ---
+        // --- THE PLAYER CAR ---
         const car = new THREE.Group(); const chassis = new THREE.Group(); 
         const silverPaint = new THREE.MeshPhysicalMaterial({ color: 0xdddddd, metalness: 0.6, roughness: 0.2, clearcoat: 0.8 });
         const blueStripeMat = new THREE.MeshPhysicalMaterial({ color: 0x0044ff, metalness: 0.5, roughness: 0.3 });
@@ -112,95 +131,111 @@
         const spoilerWing = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 0.5), new THREE.MeshStandardMaterial({color: 0x111})); spoilerWing.position.set(0, 1.25, -2.1); chassis.add(spoilerWing);
         const strutL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), silverPaint); strutL.position.set(-0.7, 1.0, -2.1); chassis.add(strutL);
         const strutR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), silverPaint); strutR.position.set(0.7, 1.0, -2.1); chassis.add(strutR);
-        const splitter = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 0.4), new THREE.MeshStandardMaterial({color: 0x111})); splitter.position.set(0, 0.25, 2.3); chassis.add(splitter);
-
+        
         window.headLightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xddffff, emissiveIntensity: 2 });
         const hlLeft = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.1), window.headLightMat); hlLeft.position.set(-0.7, 0.55, 2.3); chassis.add(hlLeft);
         const hlRight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.1), window.headLightMat); hlRight.position.set(0.7, 0.55, 2.3); chassis.add(hlRight);
-        
         car.add(chassis); 
 
-        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 12); // Less geometry for speed
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111, roughness: 0.9 });
+        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 12); const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111, roughness: 0.9 });
         function createWheel(x, z) {
             const pivot = new THREE.Group(); pivot.position.set(x, 0.45, z);
-            const wheel = new THREE.Mesh(wheelGeo, wheelMat); wheel.rotation.z = Math.PI / 2;
+            const wheel = new THREE.Mesh(wheelGeo, wheelMat); wheel.rotation.z = Math.PI / 2; wheel.castShadow = true;
             const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.42, 6), new THREE.MeshStandardMaterial({ color: 0x888 })); rim.rotation.z = Math.PI / 2; 
             pivot.add(wheel); pivot.add(rim); car.add(pivot); return pivot;
         }
         const frontLeftWheel = createWheel(-1.15, 1.4); const frontRightWheel = createWheel(1.15, 1.4);
         createWheel(-1.15, -1.4); createWheel(1.15, -1.4); scene.add(car);
 
-        // --- MAP ZONES ---
-        // LAG FIX #3: Use MeshLambertMaterial (10x faster than Standard) for the environment!
-        const cityGround = new THREE.Mesh(new THREE.PlaneGeometry(280, 400), new THREE.MeshLambertMaterial({ map: roadTexture }));
-        cityGround.rotation.x = -Math.PI / 2; cityGround.position.set(-60, 0, 0); cityGround.receiveShadow = true; scene.add(cityGround);
-        const sand = new THREE.Mesh(new THREE.PlaneGeometry(100, 400), new THREE.MeshLambertMaterial({ color: 0xe6c27a }));
-        sand.rotation.x = -Math.PI / 2; sand.position.set(130, 0.05, 0); scene.add(sand);
-        const ocean = new THREE.Mesh(new THREE.PlaneGeometry(200, 400), new THREE.MeshLambertMaterial({ color: 0x0288d1 }));
-        ocean.rotation.x = -Math.PI / 2; ocean.position.set(280, -0.3, 0); scene.add(ocean);
+        // --- NEW TERRAIN ENGINE (Hills, City, Beach) ---
+        // 1. City (Flat Asphalt in the center)
+        const cityGround = new THREE.Mesh(new THREE.PlaneGeometry(200, 400), new THREE.MeshLambertMaterial({ map: roadTexture }));
+        cityGround.rotation.x = -Math.PI / 2; cityGround.position.set(0, 0, 0); cityGround.receiveShadow = true; scene.add(cityGround);
 
-        // --- FAST PROCEDURAL CITY ---
-        const buildingColliders = []; const coins = []; const blockSize = 45; 
-        
-        // Pre-create materials for performance
-        const matSidewalk = new THREE.MeshLambertMaterial({ color: 0xdddddd });
-        const matTreeTrunk = new THREE.MeshLambertMaterial({ color: 0x4e342e });
-        const matTreeLeaves = new THREE.MeshLambertMaterial({ color: 0x2e7d32, flatShading: true });
-        const matGold = new THREE.MeshLambertMaterial({ color: 0xffd700, emissive: 0x554400 });
-        const matCafe = new THREE.MeshLambertMaterial({ color: 0xDEB887 });
-        const matAwn = new THREE.MeshLambertMaterial({ color: 0x4CAF50 });
-        const matApt = new THREE.MeshLambertMaterial({ color: 0xe0e0e0 });
-        const matHosp = new THREE.MeshLambertMaterial({ color: 0xffffff });
-        const matSky = new THREE.MeshLambertMaterial({ map: windowTexture });
+        // 2. Beach (Slopes DOWN on the East)
+        const beachGeo = new THREE.PlaneGeometry(60, 400); 
+        const sand = new THREE.Mesh(beachGeo, new THREE.MeshLambertMaterial({ color: 0xe6c27a }));
+        sand.rotation.x = -Math.PI / 2; sand.rotation.y = -0.05; // TILT DOWN
+        sand.position.set(130, -1.5, 0); sand.receiveShadow = true; scene.add(sand);
 
-        function spawnCoin(x, z) {
-            const coin = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.2, 10), matGold);
-            coin.rotation.x = Math.PI / 2; coin.position.set(x, 1.5, z); scene.add(coin);
-            coins.push({ mesh: coin, hitBox: new THREE.Box3() });
+        // 3. Hills (Slopes UP on the West)
+        const hillGeo = new THREE.PlaneGeometry(100, 400);
+        const hills = new THREE.Mesh(hillGeo, new THREE.MeshLambertMaterial({ color: 0x3d8c40 }));
+        hills.rotation.x = -Math.PI / 2; hills.rotation.y = -0.15; // TILT UP 
+        hills.position.set(-150, 7.5, 0); hills.receiveShadow = true; scene.add(hills);
+
+        // Water
+        const ocean = new THREE.Mesh(new THREE.PlaneGeometry(200, 400), new THREE.MeshLambertMaterial({ color: 0x0288d1, transparent: true, opacity: 0.8 }));
+        ocean.rotation.x = -Math.PI / 2; ocean.position.set(240, -2.5, 0); scene.add(ocean);
+
+        // TERRAIN HEIGHT MATHEMATICS (Keeps the car glued to the ground)
+        function getElevation(x) {
+            if (x > 100) return Math.max(-2.5, (100 - x) * 0.05); // Beach Slope
+            if (x < -100) return Math.min(20, (-100 - x) * 0.15); // Hill Slope
+            return 0; // Flat City
         }
 
-        function createTree(x, z) {
-            const tree = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.4, 3), matTreeTrunk); trunk.position.y = 1.5; tree.add(trunk);
-            const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5, 0), matTreeLeaves); leaves.position.y = 4; leaves.scale.y = 1.5; tree.add(leaves);
-            tree.position.set(x, 0, z); scene.add(tree);
+        // --- DETAILED CITY CLUTTER ---
+        const buildingColliders = []; const coins = []; const blockSize = 45; 
+        
+        function spawnCityClutter(x, z) {
+            if (Math.random() > 0.5) { // Fire Hydrant
+                const hydrant = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1), new THREE.MeshLambertMaterial({ color: 0xff0000 }));
+                hydrant.position.set(x + 12, 0.5, z + 12); scene.add(hydrant);
+            }
+            if (Math.random() > 0.7) { // Parked Car
+                const pCar = new THREE.Group();
+                const pBody = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 4), new THREE.MeshLambertMaterial({ color: [0x111111, 0xffffff, 0x0044ff][Math.floor(Math.random()*3)] })); 
+                pBody.position.y = 0.6; pBody.castShadow = true; pCar.add(pBody);
+                pCar.position.set(x - 5, 0, z - 10); scene.add(pCar);
+                buildingColliders.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x-5, 1, z-10), new THREE.Vector3(2.5, 2, 4.5)));
+            }
         }
 
         function createLowPolyBuilding(x, z) {
             const bldgGroup = new THREE.Group();
-            const type = Math.floor(Math.random() * 4); 
-            const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(32, 0.4, 32), matSidewalk); 
+            const type = Math.floor(Math.random() * 3); 
+            const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(32, 0.4, 32), new THREE.MeshLambertMaterial({ color: 0xdddddd })); 
             sidewalk.position.y = 0.2; sidewalk.receiveShadow = true; bldgGroup.add(sidewalk);
 
             let hitW = 16, hitD = 16;
             if (type === 0) { 
-                const body = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 16), matCafe); body.position.y = 4; body.castShadow = true; bldgGroup.add(body);
-                const awning = new THREE.Mesh(new THREE.BoxGeometry(17, 0.5, 4), matAwn); awning.position.set(0, 5, 8.5); awning.rotation.x = -Math.PI/6; bldgGroup.add(awning);
+                const body = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 16), new THREE.MeshLambertMaterial({ color: 0xDEB887 })); body.position.y = 4; body.castShadow = true; bldgGroup.add(body);
+                const awning = new THREE.Mesh(new THREE.BoxGeometry(17, 0.5, 4), new THREE.MeshLambertMaterial({ color: 0x4CAF50 })); awning.position.set(0, 5, 8.5); awning.rotation.x = -Math.PI/6; bldgGroup.add(awning);
             } else if (type === 1) {
-                const height = 25; const body = new THREE.Mesh(new THREE.BoxGeometry(14, height, 14), matApt); body.position.y = height/2; body.castShadow = true; bldgGroup.add(body);
-                const tower = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 4, 8), matTreeTrunk); tower.position.set(3, height + 2, -3); bldgGroup.add(tower);
-            } else if (type === 2) {
-                const body = new THREE.Mesh(new THREE.BoxGeometry(18, 14, 14), matHosp); body.position.y = 7; body.castShadow = true; bldgGroup.add(body);
-                const cross = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 0.5), new THREE.MeshLambertMaterial({ color: 0xff0000 })); cross.position.set(0, 14, 7.1); bldgGroup.add(cross);
-                hitW = 18;
+                const height = 25; const body = new THREE.Mesh(new THREE.BoxGeometry(14, height, 14), new THREE.MeshLambertMaterial({ color: 0xe0e0e0 })); body.position.y = height/2; body.castShadow = true; bldgGroup.add(body);
             } else {
-                const body = new THREE.Mesh(new THREE.BoxGeometry(14, 30, 14), matSky); body.position.y = 15; body.castShadow = true; bldgGroup.add(body);
+                const body = new THREE.Mesh(new THREE.BoxGeometry(18, 14, 14), new THREE.MeshLambertMaterial({ color: 0xffffff })); body.position.y = 7; body.castShadow = true; bldgGroup.add(body);
+                const cross = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 0.5), new THREE.MeshLambertMaterial({ color: 0xff0000 })); cross.position.set(0, 14, 7.1); bldgGroup.add(cross); hitW = 18;
             }
 
             bldgGroup.rotation.y = (Math.floor(Math.random() * 4)) * (Math.PI / 2); bldgGroup.position.set(x, 0, z); scene.add(bldgGroup);
             buildingColliders.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x, 5, z), new THREE.Vector3(hitW, 30, hitD)));
 
-            if (Math.random() > 0.5) createTree(x + 15, z + 15);
-            if (Math.random() > 0.6) spawnCoin(x + blockSize/2, z);
+            spawnCityClutter(x, z);
         }
 
-        for (let x = -135; x <= 135; x += blockSize) {
-            for (let z = -135; z <= 135; z += blockSize) {
+        function createHillProps(x, z) {
+            const elevation = getElevation(x);
+            if (Math.random() > 0.4) {
+                const tree = new THREE.Group();
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 4), new THREE.MeshLambertMaterial({ color: 0x4e342e })); trunk.position.y = 2; tree.add(trunk);
+                const leaves = new THREE.Mesh(new THREE.ConeGeometry(3, 7, 6), new THREE.MeshLambertMaterial({ color: 0x1b5e20, flatShading: true })); leaves.position.y = 5.5; tree.add(leaves);
+                tree.position.set(x, elevation, z); tree.rotation.z = 0.15; // Tilt with hill
+                scene.add(tree);
+            }
+        }
+
+        // Build City (Center)
+        for (let x = -80; x <= 80; x += blockSize) {
+            for (let z = -180; z <= 180; z += blockSize) {
                 if (Math.abs(x) > 15 || Math.abs(z) > 15) createLowPolyBuilding(x, z);
             }
         }
-        // --- CONTROLS & OPTIMIZED PARTICLES ---
+        // Build Hills (West)
+        for (let x = -180; x <= -110; x += 30) {
+            for (let z = -180; z <= 180; z += 30) createHillProps(x + Math.random()*10, z + Math.random()*10);
+        }// --- CONTROLS & LOGIC ---
         let speed = 0, score = 0, acceleration = 0.025, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
         let input = { gas: false, rev: false, horn: false }; 
         const particles = []; const smokeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3); const smokeMat = new THREE.MeshBasicMaterial({ color: 0x999999, transparent: true, opacity: 0.8 });
@@ -237,15 +272,12 @@
             document.getElementById('uiTop').style.display = 'flex';
         });
 
-        // LAG FIX #4: Optimized Minimap logic (Only draws buildings near you)
         const mapCanvas = document.getElementById('minimap'); const ctx = mapCanvas.getContext('2d');
         function updateMinimap() {
             ctx.clearRect(0, 0, 110, 110);
             ctx.fillStyle = '#00e5ff'; ctx.beginPath(); ctx.arc(55, 55, 4, 0, Math.PI*2); ctx.fill();
             ctx.fillStyle = '#999';
-            // Only search a tight 3x3 block radius around the car!
-            let cx = Math.round(car.position.x / blockSize) * blockSize;
-            let cz = Math.round(car.position.z / blockSize) * blockSize;
+            let cx = Math.round(car.position.x / blockSize) * blockSize; let cz = Math.round(car.position.z / blockSize) * blockSize;
             for (let x = cx - 90; x <= cx + 90; x += blockSize) {
                 for (let z = cz - 90; z <= cz + 90; z += blockSize) {
                     if (Math.abs(x) > 15 || Math.abs(z) > 15) {
@@ -262,30 +294,42 @@
             requestAnimationFrame(animate);
             const oldX = car.position.x; const oldZ = car.position.z;
 
-            let cMaxSpeed = 0.85; let cFric = 0.96;
-            if (car.position.x > 80) { cMaxSpeed = 0.3; cFric = 0.93; smokeMat.color.setHex(0xe6c27a); } 
-            else { smokeMat.color.setHex(0x999999); }
+            // 1. Terrain Detection
+            let currentMaxSpeed = 0.85; let currentFric = 0.96;
+            if (car.position.x > 100) { currentMaxSpeed = 0.3; currentFric = 0.92; smokeMat.color.setHex(0xe6c27a); } // Beach
+            else if (car.position.x < -100) { currentMaxSpeed = 0.4; currentFric = 0.94; smokeMat.color.setHex(0x3d8c40); } // Hills
+            else { smokeMat.color.setHex(0x999999); } // Road
 
             if (input.gas) speed += acceleration; if (input.rev) speed -= acceleration;
-            speed *= cFric; if (speed > cMaxSpeed) speed = cMaxSpeed; if (speed < -cMaxSpeed / 2) speed = -cMaxSpeed / 2;
+            speed *= currentFric; if (speed > currentMaxSpeed) speed = currentMaxSpeed; if (speed < -currentMaxSpeed / 2) speed = -currentMaxSpeed / 2;
 
             frontLeftWheel.rotation.y = -steeringAngle * (Math.PI / 4); frontRightWheel.rotation.y = -steeringAngle * (Math.PI / 4);
             if (Math.abs(speed) > 0.005) car.rotation.y -= (steeringAngle * 0.07) * (speed > 0 ? 1 : -1);
 
             car.position.x += Math.sin(car.rotation.y) * speed; car.position.z += Math.cos(car.rotation.y) * speed;
 
+            // 2. APPLY TERRAIN ELEVATION & PITCH (The magic hill climbing logic!)
+            car.position.y = getElevation(car.position.x);
+            
+            // Calculate where the front and back tires are to tilt the car up/down
+            const frontY = getElevation(car.position.x + Math.sin(car.rotation.y) * 2);
+            const backY = getElevation(car.position.x - Math.sin(car.rotation.y) * 2);
+            const terrainPitch = Math.atan2(frontY - backY, 4); // The angle of the hill
+
             document.getElementById('speedDisplay').innerText = Math.abs(speed) > 0.01 ? Math.abs(Math.round((speed / 0.85) * 180)) : 0;
             updateMinimap();
 
+            // Blend Terrain Pitch with Acceleration Pitch
             chassis.rotation.z += (steeringAngle * (speed / 0.8) * 0.15 - chassis.rotation.z) * 0.1;
-            chassis.rotation.x += ((input.gas ? -0.05 : input.rev ? 0.05 : 0) - chassis.rotation.x) * 0.1;
+            const enginePitch = (input.gas ? -0.05 : input.rev ? 0.05 : 0);
+            chassis.rotation.x += ((terrainPitch + enginePitch) - chassis.rotation.x) * 0.15;
+            
             if (input.horn) { chassis.position.y = Math.random() * 0.05; window.headLightMat.emissive.setHex(0xffaa00); } 
             else { chassis.position.y = 0; window.headLightMat.emissive.setHex(0xddffff); }
 
-            // Optimized Particles (Max 15 alive at once)
             if (Math.abs(speed) > 0.05 && Math.random() > 0.6 && particles.length < 15) {
                 const smoke = new THREE.Mesh(smokeGeo, smokeMat); 
-                smoke.position.set(car.position.x - Math.sin(car.rotation.y)*2.4, 0.4, car.position.z - Math.cos(car.rotation.y)*2.4);
+                smoke.position.set(car.position.x - Math.sin(car.rotation.y)*2.4, car.position.y + 0.4, car.position.z - Math.cos(car.rotation.y)*2.4);
                 scene.add(smoke); particles.push({ mesh: smoke, life: 1.0 });
             }
             for(let i = particles.length - 1; i >= 0; i--) {
@@ -294,13 +338,7 @@
             }
 
             carBox.setFromObject(car); carBox.expandByScalar(-0.1); 
-            for(let i = coins.length - 1; i >= 0; i--) {
-                let c = coins[i]; c.mesh.rotation.y += 0.05; c.hitBox.setFromObject(c.mesh);
-                if (carBox.intersectsBox(c.hitBox)) { scene.remove(c.mesh); coins.splice(i, 1); score++; document.getElementById('coinDisplay').innerText = score; }
-            }
-
             for (let i = 0; i < buildingColliders.length; i++) {
-                // Fast distance check to save CPU
                 if (buildingColliders[i].distanceToPoint(car.position) < 5) {
                     if (carBox.intersectsBox(buildingColliders[i])) {
                         car.position.x = oldX - (Math.sin(car.rotation.y) * 0.2); car.position.z = oldZ - (Math.cos(car.rotation.y) * 0.2); speed = 0; break;
