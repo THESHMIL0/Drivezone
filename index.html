@@ -1,304 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="manifest" href="manifest.json">
-    <title>New Simple City</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; }
-        
-        #uiTop { position: absolute; top: 15px; left: 15px; width: calc(100% - 30px); display: none; justify-content: space-between; align-items: flex-start; z-index: 60; pointer-events: none; }
-        .hud-left { display: flex; flex-direction: column; gap: 10px; }
-        #minimap { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #00e5ff; background: rgba(0,10,20,0.8); box-shadow: 0 0 15px rgba(0,229,255,0.4); backdrop-filter: blur(3px); }
-        .hud-panel { background: rgba(0, 20, 40, 0.85); border: 2px solid #00e5ff; border-radius: 12px; padding: 5px 15px; color: #fff; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-        .hud-panel.gold { border-color: #ffc107; }
-        .hud-value { color: #fff; font-family: monospace; font-size: 22px; text-shadow: 0 0 5px currentColor; }
-        
-        #cameraArea { position: absolute; top: 0; left: 0; width: 100%; height: 50%; z-index: 10; }
-        #controls { position: absolute; bottom: 25px; width: 100%; display: none; justify-content: space-between; align-items: flex-end; padding: 0 30px; box-sizing: border-box; z-index: 50; }
-        
-        #steeringArea { width: 150px; height: 150px; position: relative; display: flex; align-items: center; justify-content: center; touch-action: none; }
-        #steeringWheel { width: 100%; height: 100%; border-radius: 50%; border: 16px solid #111; box-sizing: border-box; background: transparent; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.7), inset 0 2px 8px rgba(255,255,255,0.1); transition: transform 0.1s; }
-        #steeringWheel::before { content: ''; position: absolute; top: 50%; left: -5px; right: -5px; height: 26px; background: #111; transform: translateY(-50%); }
-        #steeringWheel::after { content: ''; position: absolute; top: 0; left: 50%; width: 12px; height: 16px; background: #ff3333; transform: translateX(-50%); top: -16px; } 
-        .horn-center { position: absolute; width: 50px; height: 50px; background: #222; border-radius: 50%; border: 2px solid #000; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        
-        .pedals { display: flex; gap: 15px; position: relative; }
-        .btn { width: 75px; height: 75px; border-radius: 12px; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 0 rgba(0,0,0,0.6); user-select: none; border: 2px solid rgba(255,255,255,0.2); }
-        .btn:active { transform: translateY(8px); box-shadow: none; }
-        #btnGas { background: linear-gradient(to bottom, #00c6ff, #0072ff); height: 100px; }
-        #btnRev { background: linear-gradient(to bottom, #ff512f, #dd2476); }
-        #btnHorn { position: absolute; bottom: 120px; right: 0; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(to bottom, #f6d365, #fda085); font-weight: bold; font-size: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 0 #b33900; color: #000; border: 2px solid #fff; }
-        #btnHorn:active { transform: translateY(6px); box-shadow: none; }
-
-        #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #001122, #000); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        #startBtn { padding: 15px 50px; font-size: 20px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #0072ff); color: #fff; border: none; border-radius: 8px; box-shadow: 0 0 20px rgba(0,229,255,0.4); margin-top: 20px; cursor: pointer; transition: 0.3s; }
-        #startBtn:disabled { background: #555; box-shadow: none; color: #888; cursor: not-allowed; }
-        
-        #settingsBtn { position: absolute; top: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 2px solid #333; font-size: 22px; display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: auto; }
-        #settingsMenu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 30px; border-radius: 15px; border: 3px solid #00e5ff; z-index: 200; text-align: center; color: white; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>City & Car Update</title>
+<style>
+body{margin:0;overflow:hidden;background-color:#87CEEB;user-select:none;-webkit-user-select:none;font-family:sans-serif;touch-action:none;}
+#uiTop{position:absolute;top:15px;left:15px;width:calc(100% - 30px);display:none;justify-content:space-between;align-items:flex-start;z-index:60;pointer-events:none;}
+.hud-left{display:flex;flex-direction:column;gap:10px;}
+#minimap{width:110px;height:110px;border-radius:50%;border:3px solid #00e5ff;background:rgba(0,10,20,0.8);box-shadow:0 0 15px rgba(0,229,255,0.4);}
+.hud-panel{background:rgba(0,20,40,0.85);border:2px solid #00e5ff;border-radius:12px;padding:5px 15px;color:#fff;font-weight:bold;font-size:16px;display:flex;align-items:center;gap:8px;}
+.hud-value{color:#00e5ff;font-family:monospace;font-size:22px;}
+#cameraArea{position:absolute;top:0;left:0;width:100%;height:50%;z-index:10;}
+#controls{position:absolute;bottom:25px;width:100%;display:none;justify-content:space-between;align-items:flex-end;padding:0 30px;box-sizing:border-box;z-index:50;}
+#steeringArea{width:150px;height:150px;position:relative;display:flex;align-items:center;justify-content:center;}
+#steeringWheel{width:100%;height:100%;border-radius:50%;border:16px solid #111;box-sizing:border-box;position:relative;box-shadow:0 10px 20px rgba(0,0,0,0.7);transition:transform 0.1s;}
+#steeringWheel::before{content:'';position:absolute;top:50%;left:-5px;right:-5px;height:26px;background:#111;transform:translateY(-50%);}
+#steeringWheel::after{content:'';position:absolute;top:-16px;left:50%;width:12px;height:16px;background:#ff3333;transform:translateX(-50%);}
+.horn-center{position:absolute;width:50px;height:50px;background:#222;border-radius:50%;border:2px solid #000;top:50%;left:50%;transform:translate(-50%,-50%);}
+.pedals{display:flex;gap:15px;position:relative;}
+.btn{width:75px;height:75px;border-radius:12px;font-size:15px;font-weight:900;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 8px 0 rgba(0,0,0,0.6);border:2px solid rgba(255,255,255,0.2);}
+.btn:active{transform:translateY(8px);box-shadow:none;}
+#btnGas{background:linear-gradient(to bottom,#00c6ff,#0072ff);height:100px;}
+#btnRev{background:linear-gradient(to bottom,#ff512f,#dd2476);}
+#btnHorn{position:absolute;bottom:120px;right:0;width:60px;height:60px;border-radius:50%;background:linear-gradient(to bottom,#f6d365,#fda085);font-size:12px;display:flex;justify-content:center;align-items:center;color:#000;border:2px solid #fff;box-shadow:0 6px 0 #b33900;}
+#btnHorn:active{transform:translateY(6px);box-shadow:none;}
+#startScreen{position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle,#001122,#000);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;}
+#startBtn{padding:15px 50px;font-size:20px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#0072ff);color:#fff;border:none;border-radius:8px;margin-top:20px;}
+#startBtn:disabled{background:#555;color:#888;}
+</style>
 </head>
 <body>
-    <div id="cameraArea"></div>
-    <div id="uiTop">
-        <div class="hud-left">
-            <div id="minimapContainer"><canvas id="minimap" width="110" height="110"></canvas></div>
-            <div class="hud-panel gold">💰 <span class="hud-value" style="color:#ffc107;" id="coinDisplay">0</span></div>
-        </div>
-        <div class="hud-panel">⚡ <span class="hud-value" style="color:#00e5ff;" id="speedDisplay">0</span> KM/H</div>
-    </div>
+<div id="cameraArea"></div>
+<div id="uiTop">
+    <div class="hud-left"><canvas id="minimap" width="110" height="110"></canvas></div>
+    <div class="hud-panel">⚡ <span class="hud-value" id="speedDisplay">0</span> KM/H</div>
+</div>
+<div id="startScreen">
+    <h1 style="font-size:40px;margin:0;color:#fff;text-shadow:0 0 20px #00e5ff;">OPEN WORLD</h1>
+    <p id="loadingText" style="color:#aaa;">Loading 3D Models...</p>
+    <button id="startBtn" disabled>WAIT...</button>
+</div>
+<div id="controls">
+    <div id="steeringArea"><div id="steeringWheel"><div class="horn-center"></div></div></div>
+    <div class="pedals"><div id="btnHorn">HORN</div><div class="btn" id="btnRev">BRAKE</div><div class="btn" id="btnGas">GAS</div></div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
+import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x7ec0ee); 
+scene.fog = new THREE.FogExp2(0x7ec0ee, 0.002); 
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1500);
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.2)); 
+renderer.shadowMap.enabled = true; 
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding; 
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444455, 0.8); scene.add(hemiLight);
+const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+sunLight.position.set(150, 200, -100); sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
+const d = 150; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
+scene.add(sunLight);
+
+const car = new THREE.Group(); const chassis = new THREE.Group(); 
+car.add(chassis); scene.add(car);
+
+const loader = new GLTFLoader();
+let filesLoaded = 0; 
+function checkAllLoaded() {
+    filesLoaded++;
+    if (filesLoaded === 2) {
+        document.getElementById('startBtn').innerText = "START ENGINE";
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('loadingText').innerText = "World Ready!";
+        document.getElementById('loadingText').style.color = "#00ffcc";
+    }
+}
+
+// 1. LOAD CAR
+loader.load('low-poly_sports_car.glb', (gltf) => {
+    const uploadedCar = gltf.scene;
+    uploadedCar.scale.set(0.9, 0.9, 0.9); 
     
-    <div id="startScreen">
-        <h1 style="font-size: 40px; margin: 0; color: #fff; text-shadow: 0 0 20px #00e5ff;">OPEN WORLD</h1>
-        <p style="color: #aaa; margin-bottom: 30px;" id="loadingText">Connecting to GitHub...</p>
-        <button id="startBtn" disabled>LOADING NEW CITY...</button>
-    </div>
+    // 🔥 LIFTED CAR OUT OF THE GROUND (Changed from 1.0 to 2.5)
+    uploadedCar.position.y = 2.5; 
     
-    <div id="settingsBtn">⚙️</div>
-    <div id="settingsMenu">
-        <h2 style="margin-top:0;">Settings</h2>
-        <button id="closeSettings" style="background: #dc3545; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Close</button>
-    </div>
+    uploadedCar.position.x = 0; uploadedCar.position.z = 0;
+    uploadedCar.rotation.y = Math.PI / 2; 
+    uploadedCar.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+    chassis.add(uploadedCar); checkAllLoaded();
+});
 
-    <div id="controls">
-        <div id="steeringArea"><div id="steeringWheel"><div class="horn-center"></div></div></div>
-        <div class="pedals">
-            <div id="btnHorn">HORN</div>
-            <div class="btn" id="btnRev">BRAKE</div>
-            <div class="btn" id="btnGas">GAS</div>
-        </div>
-    </div>
+// 2. LOAD CITY
+loader.load('simple_city_free.glb', (gltf) => {
+    const uploadedCity = gltf.scene;
+    uploadedCity.scale.set(3.0, 3.0, 3.0); 
+    
+    // 🔥 DROPPED CITY SLIGHTLY JUST IN CASE (Changed to -1.0)
+    uploadedCity.position.set(0, -1.0, 0); 
+    
+    uploadedCity.traverse((c) => { if (c.isMesh) { c.receiveShadow = true; c.castShadow = true; }});
+    scene.add(uploadedCity); checkAllLoaded();
+});
 
-    <script type="module">
-        import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
-        import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
+const carLight = new THREE.SpotLight(0xffffee, 2); 
+carLight.position.set(0, 2, 3); carLight.target.position.set(0, 0, 20);
+carLight.angle = Math.PI/4; chassis.add(carLight); chassis.add(carLight.target);
 
-        document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'block');
-        document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'none');
+let speed = 0, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
+let input = { gas: false, rev: false, horn: false }; 
 
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x7ec0ee); 
-        scene.fog = new THREE.FogExp2(0x7ec0ee, 0.002); 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1500);
-        
-        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.2)); 
-        renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
-        renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
-        document.body.appendChild(renderer.domElement);
+const bindBtn = (id, key) => {
+    const btn = document.getElementById(id);
+    btn.addEventListener('touchstart', (e) => { e.preventDefault(); input[key] = true; });
+    btn.addEventListener('touchend', (e) => { e.preventDefault(); input[key] = false; });
+};
+bindBtn('btnGas', 'gas'); bindBtn('btnRev', 'rev'); bindBtn('btnHorn', 'horn');
 
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444455, 0.8); scene.add(hemiLight);
-        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
-        sunLight.position.set(150, 200, -100); sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
-        const d = 150; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
-        sunLight.shadow.bias = -0.001; scene.add(sunLight);
-        // --- BASE GROUND ---
-        const groundGeo = new THREE.PlaneGeometry(1000, 1000);
-        const groundMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2; ground.position.y = -0.5; ground.receiveShadow = true; 
-        scene.add(ground);
+const steeringArea = document.getElementById('steeringArea'); const steeringUI = document.getElementById('steeringWheel');
+let isSteering = false;
+steeringArea.addEventListener('touchstart', (e) => { e.preventDefault(); isSteering = true; });
+steeringArea.addEventListener('touchend', (e) => { e.preventDefault(); isSteering = false; steeringAngle = 0; steeringUI.style.transform = `rotate(0deg)`; });
+steeringArea.addEventListener('touchmove', (e) => {
+    if (!isSteering) return; e.preventDefault();
+    const touch = e.touches[0]; const rect = steeringArea.getBoundingClientRect();
+    let angleDeg = Math.atan2(touch.clientY - (rect.top + rect.height/2), touch.clientX - (rect.left + rect.width/2)) * (180 / Math.PI) + 90;
+    if (angleDeg > 180) angleDeg -= 360; if (angleDeg > 90) angleDeg = 90; if (angleDeg < -90) angleDeg = -90;
+    steeringUI.style.transform = `rotate(${angleDeg}deg)`; steeringAngle = (angleDeg / 90) * 0.6; 
+});
 
-        // --- CUSTOM LOADERS ---
-        const car = new THREE.Group(); 
-        const chassis = new THREE.Group(); 
-        car.add(chassis);
-        scene.add(car);
+const camArea = document.getElementById('cameraArea');
+camArea.addEventListener('touchstart', (e) => { isDraggingCamera = true; startDragX = e.touches[0].clientX; });
+camArea.addEventListener('touchend', () => { isDraggingCamera = false; });
+camArea.addEventListener('touchmove', (e) => { if (isDraggingCamera) { cameraOrbitAngle += (e.touches[0].clientX - startDragX) * 0.005; startDragX = e.touches[0].clientX; } });
 
-        const loader = new GLTFLoader();
-        const startBtn = document.getElementById('startBtn');
-        const loadingText = document.getElementById('loadingText');
-        
-        let filesLoaded = 0; 
-        function checkAllLoaded() {
-            filesLoaded++;
-            if (filesLoaded === 2) {
-                startBtn.innerText = "START ENGINE";
-                startBtn.disabled = false;
-                loadingText.innerText = "New City & Car Ready!";
-                loadingText.style.color = "#00ffcc";
-            }
-        }
+document.getElementById('startBtn').addEventListener('click', () => {
+    document.getElementById('startScreen').style.display = 'none'; 
+    document.getElementById('controls').style.display = 'flex';
+    document.getElementById('uiTop').style.display = 'flex';
+});
 
-        // 1. LOAD THE CUSTOM CAR
-        loader.load('low-poly_sports_car.glb', function(gltf) {
-            const uploadedCar = gltf.scene;
-            
-            // ==========================================
-            // 🛠️ THE MECHANIC'S GARAGE: TUNE YOUR CAR! 🛠️
-            // ==========================================
-            
-            // 1. SINKING OR FLOATING? (The Y-Axis)
-            // If tires are underground, change 1.0 to 1.5 or 2.0. 
-            // If it's floating in the sky, lower it to 0.5 or 0.
-            uploadedCar.position.y = 1.0; 
-            
-            // 2. DRIVING SIDEWAYS OR BACKWARDS? (The Rotation)
-            // Change this to: 0, or Math.PI, or -Math.PI / 2
-            uploadedCar.rotation.y = Math.PI / 2; 
+const cameraTarget = new THREE.Vector3(); 
+function animate() {
+    requestAnimationFrame(animate);
+    if (input.gas) speed += 0.02; if (input.rev) speed -= 0.02;
+    if (!input.gas && !input.rev) speed *= 0.98; 
+    if (input.rev && speed > 0) speed *= 0.94; 
+    if (speed > 0.9) speed = 0.9; if (speed < -0.45) speed = -0.45;
 
-            // 3. CAR TOO BIG OR SMALL? (The Scale)
-            uploadedCar.scale.set(0.9, 0.9, 0.9); 
+    if (Math.abs(speed) > 0.01 && steeringAngle !== 0) car.rotation.y -= (speed / (2.8 / Math.tan(steeringAngle)));
 
-            // Keep the car centered in the physics engine
-            uploadedCar.position.x = 0;
-            uploadedCar.position.z = 0;
-            // ==========================================
-            
-            uploadedCar.traverse((child) => {
-                if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; }
-            });
-            
-            chassis.add(uploadedCar);
-            checkAllLoaded();
-            
-        }, undefined, function(error) {
-            console.error(error);
-            loadingText.innerText = "ERROR: Could not load Car"; loadingText.style.color = "#ff3333";
-        });
+    car.position.x += Math.sin(car.rotation.y) * speed; 
+    car.position.z += Math.cos(car.rotation.y) * speed;
+    car.position.y = 0; 
 
-        // 2. LOAD THE BRAND NEW CUSTOM CITY!
-        loader.load('simple_city_free.glb', function(gltf) {
-            const uploadedCity = gltf.scene;
-            
-            // ==========================================
-            // 🏙️ CITY PLANNER: MOVE THE CITY! 🏙️
-            // ==========================================
-            uploadedCity.scale.set(1.0, 1.0, 1.0); 
-            
-            // DID THE CAR SPAWN INSIDE A BUILDING?
-            // Move the city left/right or forward/backward so the car spawns on a road!
-            uploadedCity.position.x = 0; // Change to 10 or -10 to slide the city sideways
-            uploadedCity.position.z = 0; // Change to 10 or -10 to slide the city forward/back
-            
-            uploadedCity.position.y = 0; // Adjust if the road is too high/low
-            // ==========================================
-            
-            uploadedCity.traverse((child) => {
-                if (child.isMesh) { child.receiveShadow = true; child.castShadow = true; }
-            });
-            
-            scene.add(uploadedCity);
-            checkAllLoaded();
-            
-        }, undefined, function(error) {
-            console.error(error);
-            loadingText.innerText = "ERROR: Could not find 'simple_city_free.glb'"; loadingText.style.color = "#ff3333";
-        });
+    document.getElementById('speedDisplay').innerText = Math.abs(speed) > 0.01 ? Math.abs(Math.round((speed / 0.9) * 200)) : 0;
 
-        // Car Headlights
-        window.headLightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xddffff, emissiveIntensity: 2 });
-        const carLight = new THREE.SpotLight(0xffffee, 2); 
-        carLight.position.set(0, 1, 3); carLight.target.position.set(0, 0, 20);
-        carLight.angle = Math.PI/4; carLight.penumbra = 0.5; chassis.add(carLight); chassis.add(carLight.target);
+    chassis.rotation.z += ((steeringAngle * (speed / 0.9) * 0.2) - chassis.rotation.z) * 0.1;
+    chassis.rotation.x += ((input.gas ? -0.05 : input.rev ? 0.05 : 0) - chassis.rotation.x) * 0.15;
+    if (input.horn) chassis.position.y = Math.random() * 0.05; else chassis.position.y = 0; 
 
-        // Invisible wheels for turning physics
-        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 8); 
-        const wheelMat = new THREE.MeshBasicMaterial({ visible: false }); 
-        function createWheel(x, z) {
-            const pivot = new THREE.Group(); pivot.position.set(x, 0.45, z);
-            const wheel = new THREE.Mesh(wheelGeo, wheelMat); wheel.rotation.z = Math.PI / 2;
-            pivot.add(wheel); car.add(pivot); return pivot;
-        }
-        const frontLeftWheel = createWheel(-1.15, 1.4); const frontRightWheel = createWheel(1.15, 1.4);
-        createWheel(-1.15, -1.4); createWheel(1.15, -1.4); 
+    camera.fov = THREE.MathUtils.lerp(camera.fov, 60 + (Math.abs(speed) * 25), 0.1); camera.updateProjectionMatrix();
 
-        const buildingColliders = []; 
-        // --- REALISTIC VEHICLE CONTROLLER ---
-        let speed = 0, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
-        let input = { gas: false, rev: false, horn: false }; 
-        const particles = []; const smokeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3); const smokeMat = new THREE.MeshBasicMaterial({ color: 0xdddddd, transparent: true, opacity: 0.8 });
-        
-        const bindBtn = (id, key) => {
-            const btn = document.getElementById(id);
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); input[key] = true; });
-            btn.addEventListener('touchend', (e) => { e.preventDefault(); input[key] = false; });
-        };
-        bindBtn('btnGas', 'gas'); bindBtn('btnRev', 'rev'); bindBtn('btnHorn', 'horn');
-
-        const steeringArea = document.getElementById('steeringArea'); const steeringUI = document.getElementById('steeringWheel');
-        let isSteering = false;
-        steeringArea.addEventListener('touchstart', (e) => { e.preventDefault(); isSteering = true; });
-        steeringArea.addEventListener('touchend', (e) => { e.preventDefault(); isSteering = false; steeringAngle = 0; steeringUI.style.transform = `rotate(0deg)`; });
-        steeringArea.addEventListener('touchmove', (e) => {
-            if (!isSteering) return; e.preventDefault();
-            const touch = e.touches[0]; const rect = steeringArea.getBoundingClientRect();
-            let angleDeg = Math.atan2(touch.clientY - (rect.top + rect.height/2), touch.clientX - (rect.left + rect.width/2)) * (180 / Math.PI) + 90;
-            if (angleDeg > 180) angleDeg -= 360; if (angleDeg > 90) angleDeg = 90; if (angleDeg < -90) angleDeg = -90;
-            steeringUI.style.transform = `rotate(${angleDeg}deg)`; 
-            steeringAngle = (angleDeg / 90) * 0.6; 
-        });
-
-        const camArea = document.getElementById('cameraArea');
-        camArea.addEventListener('touchstart', (e) => { isDraggingCamera = true; startDragX = e.touches[0].clientX; });
-        camArea.addEventListener('touchend', () => { isDraggingCamera = false; });
-        camArea.addEventListener('touchmove', (e) => { if (isDraggingCamera) { cameraOrbitAngle += (e.touches[0].clientX - startDragX) * 0.005; startDragX = e.touches[0].clientX; } });
-
-        document.getElementById('startBtn').addEventListener('click', () => {
-            document.documentElement.requestFullscreen().catch(e => console.log(e));
-            try { screen.orientation.lock('landscape'); } catch(e) {}
-            document.getElementById('startScreen').style.display = 'none'; 
-            document.getElementById('controls').style.display = 'flex';
-            document.getElementById('uiTop').style.display = 'flex';
-        });
-
-        const mapCanvas = document.getElementById('minimap'); const ctx = mapCanvas.getContext('2d');
-        function updateMinimap() {
-            ctx.clearRect(0, 0, 110, 110); ctx.fillStyle = '#00e5ff'; ctx.beginPath(); ctx.arc(55, 55, 4, 0, Math.PI*2); ctx.fill(); 
-        }
-
-        // --- NEW PHYSICS LOOP ---
-        const cameraTarget = new THREE.Vector3(); 
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const horsepower = 0.02;
-            const brakePower = 0.94; 
-            const wheelbase = 2.8; 
-            const maxSpeed = 0.9;
-            
-            if (input.gas) speed += horsepower; 
-            if (input.rev) speed -= horsepower;
-            if (!input.gas && !input.rev) speed *= 0.98; 
-            if (input.rev && speed > 0) speed *= brakePower; 
-
-            if (speed > maxSpeed) speed = maxSpeed; 
-            if (speed < -maxSpeed / 2) speed = -maxSpeed / 2;
-
-            if (Math.abs(speed) > 0.01 && steeringAngle !== 0) {
-                const turnRadius = wheelbase / Math.tan(steeringAngle);
-                car.rotation.y -= (speed / turnRadius);
-            }
-
-            car.position.x += Math.sin(car.rotation.y) * speed; 
-            car.position.z += Math.cos(car.rotation.y) * speed;
-            car.position.y = 0; // Flat floor for custom city
-
-            document.getElementById('speedDisplay').innerText = Math.abs(speed) > 0.01 ? Math.abs(Math.round((speed / maxSpeed) * 200)) : 0;
-            updateMinimap();
-
-            chassis.rotation.z += ((steeringAngle * (speed / maxSpeed) * 0.2) - chassis.rotation.z) * 0.1;
-            const enginePitch = (input.gas ? -0.05 : input.rev ? 0.05 : 0);
-            chassis.rotation.x += (enginePitch - chassis.rotation.x) * 0.15;
-            
-            if (input.horn) { chassis.position.y = Math.random() * 0.05; } else { chassis.position.y = 0; }
-
-            camera.fov = THREE.MathUtils.lerp(camera.fov, 60 + (Math.abs(speed) * 25), 0.1); camera.updateProjectionMatrix();
-
-            if ((input.gas || input.rev) && !isDraggingCamera) cameraOrbitAngle *= 0.9; 
-            const finalCamAngle = car.rotation.y + cameraOrbitAngle;
-            const idealOffset = new THREE.Vector3(car.position.x - Math.sin(finalCamAngle)*12, car.position.y + 6.0, car.position.z - Math.cos(finalCamAngle)*12);
-            camera.position.lerp(idealOffset, 0.15); cameraTarget.lerp(car.position, 0.25); camera.lookAt(cameraTarget);
-            
-            sunLight.position.set(car.position.x + 50, 100, car.position.z - 50); sunLight.target = car;
-            renderer.render(scene, camera);
-        }
-        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-        animate();
-    </script>
+    if ((input.gas || input.rev) && !isDraggingCamera) cameraOrbitAngle *= 0.9; 
+    const finalCamAngle = car.rotation.y + cameraOrbitAngle;
+    const idealOffset = new THREE.Vector3(car.position.x - Math.sin(finalCamAngle)*12, car.position.y + 6.0, car.position.z - Math.cos(finalCamAngle)*12);
+    camera.position.lerp(idealOffset, 0.15); cameraTarget.lerp(car.position, 0.25); camera.lookAt(cameraTarget);
+    sunLight.position.set(car.position.x + 50, 100, car.position.z - 50); sunLight.target = car;
+    renderer.render(scene, camera);
+}
+animate();
+</script>
 </body>
 </html>
