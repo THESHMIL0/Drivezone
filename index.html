@@ -128,14 +128,13 @@
         loader.load('low-poly_sports_car.glb', function(gltf) {
             const uploadedCar = gltf.scene;
             
-            // 🛠️ HOW TO FIX THE CAR:
-            // 1. If it's too big/small, change these three numbers (e.g., 0.5, or 2.0)
-            uploadedCar.scale.set(1.0, 1.0, 1.0); 
+            // 🛠️ SEARCH AND RESCUE MODE: 
+            // The car is huge (10.0) and floating 5 units in the air so you can spot it!
+            // Once you find it, lower these numbers (like 1.0 or 0.5) and set Y to 0.
+            uploadedCar.scale.set(10.0, 10.0, 10.0); 
+            uploadedCar.position.set(0, 5.0, 0); 
             
-            // 2. If it's floating or buried, change the middle number (Y-axis)
-            uploadedCar.position.set(0, 0, 0); 
-            
-            // 3. If it drives sideways, change Math.PI to: 0, or Math.PI / 2, or -Math.PI / 2
+            // If it drives sideways, change Math.PI to: 0, or Math.PI / 2, or -Math.PI / 2
             uploadedCar.rotation.y = Math.PI; 
             
             uploadedCar.traverse((child) => {
@@ -154,11 +153,8 @@
         loader.load('low_poly_city.glb', function(gltf) {
             const uploadedCity = gltf.scene;
             
-            // 🛠️ HOW TO FIX THE CITY:
-            // 1. If the city is too small, change these to 5, 10, or 20!
+            // 🛠️ CITY SETTINGS:
             uploadedCity.scale.set(3.0, 3.0, 3.0); 
-            
-            // 2. If the city floor is above your tires, lower it by changing the middle number to -1 or -2
             uploadedCity.position.set(0, 0, 0); 
             
             uploadedCity.traverse((child) => {
@@ -190,6 +186,7 @@
         const frontLeftWheel = createWheel(-1.15, 1.4); const frontRightWheel = createWheel(1.15, 1.4);
         createWheel(-1.15, -1.4); createWheel(1.15, -1.4); 
 
+        // Removed physical collision boxes so you don't get stuck in the new city
         const buildingColliders = []; 
         // --- REALISTIC VEHICLE CONTROLLER ---
         let speed = 0, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
@@ -232,7 +229,6 @@
         const mapCanvas = document.getElementById('minimap'); const ctx = mapCanvas.getContext('2d');
         function updateMinimap() {
             ctx.clearRect(0, 0, 110, 110); ctx.fillStyle = '#00e5ff'; ctx.beginPath(); ctx.arc(55, 55, 4, 0, Math.PI*2); ctx.fill(); 
-            // Simple map dot for now since city is custom
         }
 
         // --- NEW PHYSICS LOOP ---
@@ -240,7 +236,6 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Vehicle Engine Specs
             const horsepower = 0.02;
             const brakePower = 0.94; 
             const wheelbase = 2.8; 
@@ -254,7 +249,6 @@
             if (speed > maxSpeed) speed = maxSpeed; 
             if (speed < -maxSpeed / 2) speed = -maxSpeed / 2;
 
-            // ACKERMANN STEERING 
             if (Math.abs(speed) > 0.01 && steeringAngle !== 0) {
                 const turnRadius = wheelbase / Math.tan(steeringAngle);
                 car.rotation.y -= (speed / turnRadius);
@@ -262,9 +256,7 @@
 
             car.position.x += Math.sin(car.rotation.y) * speed; 
             car.position.z += Math.cos(car.rotation.y) * speed;
-
-            // Keep car on the ground level
-            car.position.y = 0;
+            car.position.y = 0; // Flat floor for custom city
 
             document.getElementById('speedDisplay').innerText = Math.abs(speed) > 0.01 ? Math.abs(Math.round((speed / maxSpeed) * 200)) : 0;
             updateMinimap();
@@ -275,12 +267,11 @@
             
             if (input.horn) { chassis.position.y = Math.random() * 0.05; } else { chassis.position.y = 0; }
 
-            // Dynamic Camera
             camera.fov = THREE.MathUtils.lerp(camera.fov, 60 + (Math.abs(speed) * 25), 0.1); camera.updateProjectionMatrix();
 
             if ((input.gas || input.rev) && !isDraggingCamera) cameraOrbitAngle *= 0.9; 
             const finalCamAngle = car.rotation.y + cameraOrbitAngle;
-            const idealOffset = new THREE.Vector3(car.position.x - Math.sin(finalCamAngle)*9, car.position.y + 4.5, car.position.z - Math.cos(finalCamAngle)*9);
+            const idealOffset = new THREE.Vector3(car.position.x - Math.sin(finalCamAngle)*12, car.position.y + 6.0, car.position.z - Math.cos(finalCamAngle)*12);
             camera.position.lerp(idealOffset, 0.15); cameraTarget.lerp(car.position, 0.25); camera.lookAt(cameraTarget);
             
             sunLight.position.set(car.position.x + 50, 100, car.position.z - 50); sunLight.target = car;
