@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    <title>Pro Vehicle Physics</title>
+    <title>Custom 3D City & Car</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; }
+        
         #uiTop { position: absolute; top: 15px; left: 15px; width: calc(100% - 30px); display: none; justify-content: space-between; align-items: flex-start; z-index: 60; pointer-events: none; }
         .hud-left { display: flex; flex-direction: column; gap: 10px; }
         #minimap { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #00e5ff; background: rgba(0,10,20,0.8); box-shadow: 0 0 15px rgba(0,229,255,0.4); backdrop-filter: blur(3px); }
@@ -50,9 +51,9 @@
     </div>
     
     <div id="startScreen">
-        <h1 style="font-size: 40px; margin: 0; color: #fff; text-shadow: 0 0 20px #00e5ff;">URBAN DRIFT</h1>
-        <p style="color: #aaa; margin-bottom: 30px;" id="loadingText">Pro Physics Update...</p>
-        <button id="startBtn" disabled>LOADING 3D CAR...</button>
+        <h1 style="font-size: 40px; margin: 0; color: #fff; text-shadow: 0 0 20px #00e5ff;">OPEN WORLD</h1>
+        <p style="color: #aaa; margin-bottom: 30px;" id="loadingText">Connecting to GitHub...</p>
+        <button id="startBtn" disabled>LOADING WORLD...</button>
     </div>
     
     <div id="settingsBtn">⚙️</div>
@@ -79,8 +80,8 @@
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x7ec0ee); 
-        scene.fog = new THREE.FogExp2(0x7ec0ee, 0.0035); 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 800);
+        scene.fog = new THREE.FogExp2(0x7ec0ee, 0.002); 
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1500);
         
         const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -89,119 +90,130 @@
         renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
         document.body.appendChild(renderer.domElement);
 
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444455, 0.7); scene.add(hemiLight);
-        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.0);
-        sunLight.position.set(100, 150, -50); sunLight.castShadow = true;
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444455, 0.8); scene.add(hemiLight);
+        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+        sunLight.position.set(150, 200, -100); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
-        const d = 120; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
+        const d = 150; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
         sunLight.shadow.bias = -0.001; scene.add(sunLight);
-        // --- TEXTURES ---
-        function createRoadTexture() {
-            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
-            const ctx = canvas.getContext('2d'); ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, 512, 512); 
-            for(let i=0; i<1500; i++) { ctx.fillStyle = Math.random() > 0.5 ? '#222' : '#111'; ctx.fillRect(Math.random()*512, Math.random()*512, 3, 3); }
-            ctx.fillStyle = '#ffffff'; 
-            for(let i=100; i<412; i+=60) ctx.fillRect(250, i, 12, 30); 
-            for(let i=20; i<492; i+=40) { ctx.fillRect(i, 10, 20, 40); ctx.fillRect(i, 462, 20, 40); }
-            const tex = new THREE.CanvasTexture(canvas); tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; tex.magFilter = THREE.NearestFilter; return tex;
-        }
-        function createWindowTexture() {
-            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
-            const ctx = canvas.getContext('2d'); ctx.fillStyle = '#0a1015'; ctx.fillRect(0, 0, 128, 128); 
-            for(let x=5; x<128; x+=20) { for(let y=5; y<128; y+=25) { ctx.fillStyle = Math.random() > 0.6 ? '#ffeba1' : '#112233'; ctx.fillRect(x, y, 10, 15); } }
-            const tex = new THREE.CanvasTexture(canvas); tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; tex.magFilter = THREE.NearestFilter; return tex;
-        }
-        const roadTexture = createRoadTexture(); roadTexture.repeat.set(40, 40);
-        const windowTexture = createWindowTexture(); windowTexture.repeat.set(2, 4);
+        // --- BASE GROUND (Just in case the city doesn't have a floor) ---
+        const groundGeo = new THREE.PlaneGeometry(1000, 1000);
+        const groundMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; 
+        scene.add(ground);
 
-        // --- NEW: MANUAL SCALING GLTF LOADER ---
+        // --- NEW: DUAL AUTO-SCALING LOADER ---
         const car = new THREE.Group(); 
         const chassis = new THREE.Group(); 
         car.add(chassis);
+        scene.add(car);
 
         const loader = new GLTFLoader();
         const startBtn = document.getElementById('startBtn');
+        const loadingText = document.getElementById('loadingText');
+        
+        // We track how many files have successfully loaded
+        let filesLoaded = 0; 
+        function checkAllLoaded() {
+            filesLoaded++;
+            if (filesLoaded === 2) {
+                startBtn.innerText = "START ENGINE";
+                startBtn.disabled = false;
+                loadingText.innerText = "City & Car Loaded Successfully!";
+                loadingText.style.color = "#00ffcc";
+            }
+        }
 
-        loader.load('mazda_rx7_stylised.glb', function(gltf) {
+        // 1. LOAD THE CUSTOM CAR
+        loader.load('low-poly_sports_car.glb', function(gltf) {
             const uploadedCar = gltf.scene;
             
-            // MANUAL SCALE: This forces the car to be visible. 
-            // If the car is too huge, change 0.015 to 0.005. If it's too small, change it to 0.05!
-            uploadedCar.scale.set(0.015, 0.015, 0.015); 
+            // Auto-scale car to fit our physics engine (4.5 units long)
+            const box = new THREE.Box3().setFromObject(uploadedCar);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
             
-            // This faces the car forward
-            uploadedCar.rotation.y = Math.PI; 
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const autoScale = 4.5 / maxDim;
             
-            // This lowers the car so the tires touch the road
-            uploadedCar.position.set(0, -0.4, 0); 
+            uploadedCar.scale.set(autoScale, autoScale, autoScale);
+            
+            // Center it so tires touch ground perfectly
+            uploadedCar.position.x = -center.x * autoScale;
+            uploadedCar.position.y = -box.min.y * autoScale; 
+            uploadedCar.position.z = -center.z * autoScale;
+            
+            uploadedCar.rotation.y = Math.PI; // Face forwards
             
             uploadedCar.traverse((child) => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
+                if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; }
             });
             
             chassis.add(uploadedCar);
-            startBtn.innerText = "START ENGINE";
-            startBtn.disabled = false;
-            document.getElementById('loadingText').innerText = "Mazda RX7 loaded perfectly!";
+            checkAllLoaded();
             
         }, undefined, function(error) {
             console.error(error);
-            startBtn.innerText = "FILE ERROR: Waiting for GitHub...";
-            document.getElementById('loadingText').innerText = "GitHub is still publishing the file. Please wait 2 mins and refresh!";
+            loadingText.innerText = "ERROR: Could not find 'low-poly_sports_car.glb'";
+            loadingText.style.color = "#ff3333";
         });
 
+        // 2. LOAD THE CUSTOM CITY
+        loader.load('low_poly_city.glb', function(gltf) {
+            const uploadedCity = gltf.scene;
+            
+            // Auto-scale city to be massive (400 units wide)
+            const box = new THREE.Box3().setFromObject(uploadedCity);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            
+            const maxDim = Math.max(size.x, size.z); // Measure footprint
+            const cityScale = 300 / maxDim; // Make it a big map!
+            
+            uploadedCity.scale.set(cityScale, cityScale, cityScale);
+            
+            // Center the city in the world at Y=0
+            uploadedCity.position.x = -center.x * cityScale;
+            uploadedCity.position.y = -box.min.y * cityScale; 
+            uploadedCity.position.z = -center.z * cityScale;
+            
+            uploadedCity.traverse((child) => {
+                if (child.isMesh) { child.receiveShadow = true; child.castShadow = true; }
+            });
+            
+            scene.add(uploadedCity);
+            checkAllLoaded();
+            
+        }, undefined, function(error) {
+            console.error(error);
+            loadingText.innerText = "ERROR: Could not find 'low_poly_city.glb'";
+            loadingText.style.color = "#ff3333";
+        });
+
+        // Car Headlights
         window.headLightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xddffff, emissiveIntensity: 2 });
         const carLight = new THREE.SpotLight(0xffffee, 2); 
         carLight.position.set(0, 1, 3); carLight.target.position.set(0, 0, 20);
         carLight.angle = Math.PI/4; carLight.penumbra = 0.5; chassis.add(carLight); chassis.add(carLight.target);
 
-        // --- MAP ZONES ---
-        const cityGround = new THREE.Mesh(new THREE.PlaneGeometry(200, 400), new THREE.MeshLambertMaterial({ map: roadTexture }));
-        cityGround.rotation.x = -Math.PI / 2; cityGround.position.set(0, 0, 0); cityGround.receiveShadow = true; scene.add(cityGround);
-        const beachGeo = new THREE.PlaneGeometry(60, 400); const sand = new THREE.Mesh(beachGeo, new THREE.MeshLambertMaterial({ color: 0xe6c27a }));
-        sand.rotation.x = -Math.PI / 2; sand.rotation.y = -0.05; sand.position.set(130, -1.5, 0); sand.receiveShadow = true; scene.add(sand);
-        const hillGeo = new THREE.PlaneGeometry(100, 400); const hills = new THREE.Mesh(hillGeo, new THREE.MeshLambertMaterial({ color: 0x3d8c40 }));
-        hills.rotation.x = -Math.PI / 2; hills.rotation.y = -0.15; hills.position.set(-150, 7.5, 0); hills.receiveShadow = true; scene.add(hills);
-
-        function getElevation(x) {
-            if (x > 100) return Math.max(-2.5, (100 - x) * 0.05); 
-            if (x < -100) return Math.min(20, (-100 - x) * 0.15); 
-            return 0; 
+        // Invisible wheels for turning physics
+        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 8); 
+        const wheelMat = new THREE.MeshBasicMaterial({ visible: false }); 
+        function createWheel(x, z) {
+            const pivot = new THREE.Group(); pivot.position.set(x, 0.45, z);
+            const wheel = new THREE.Mesh(wheelGeo, wheelMat); wheel.rotation.z = Math.PI / 2;
+            pivot.add(wheel); car.add(pivot); return pivot;
         }
+        const frontLeftWheel = createWheel(-1.15, 1.4); const frontRightWheel = createWheel(1.15, 1.4);
+        createWheel(-1.15, -1.4); createWheel(1.15, -1.4); 
 
-        // --- CITY GENERATOR ---
-        const buildingColliders = []; const coins = []; const blockSize = 45; 
-        
-        function createLowPolyBuilding(x, z) {
-            const bldgGroup = new THREE.Group();
-            const type = Math.floor(Math.random() * 3); 
-            const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(32, 0.4, 32), new THREE.MeshLambertMaterial({ color: 0xdddddd })); sidewalk.position.y = 0.2; sidewalk.receiveShadow = true; bldgGroup.add(sidewalk);
-
-            let hitW = 16, hitD = 16;
-            if (type === 0) { 
-                const body = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 16), new THREE.MeshLambertMaterial({ color: 0xDEB887 })); body.position.y = 4; body.castShadow = true; bldgGroup.add(body);
-            } else if (type === 1) {
-                const height = 25; const body = new THREE.Mesh(new THREE.BoxGeometry(14, height, 14), new THREE.MeshLambertMaterial({ color: 0xe0e0e0 })); body.position.y = height/2; body.castShadow = true; bldgGroup.add(body);
-            } else {
-                const body = new THREE.Mesh(new THREE.BoxGeometry(14, 35, 14), new THREE.MeshLambertMaterial({ map: windowTexture })); body.position.y = 17.5; body.castShadow = true; bldgGroup.add(body);
-            }
-
-            bldgGroup.rotation.y = (Math.floor(Math.random() * 4)) * (Math.PI / 2); bldgGroup.position.set(x, 0, z); scene.add(bldgGroup);
-            buildingColliders.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x, 5, z), new THREE.Vector3(hitW, 30, hitD)));
-        }
-
-        for (let x = -80; x <= 80; x += blockSize) {
-            for (let z = -180; z <= 180; z += blockSize) {
-                if (Math.abs(x) > 15 || Math.abs(z) > 15) createLowPolyBuilding(x, z);
-            }
-        }
+        // We removed the procedural buildings so you can drive freely inside your custom city!
+        const buildingColliders = []; 
         // --- REALISTIC VEHICLE CONTROLLER ---
-        let speed = 0, score = 0, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
+        let speed = 0, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
         let input = { gas: false, rev: false, horn: false }; 
-        const particles = []; const smokeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3); const smokeMat = new THREE.MeshBasicMaterial({ color: 0x999999, transparent: true, opacity: 0.8 });
+        const particles = []; const smokeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3); const smokeMat = new THREE.MeshBasicMaterial({ color: 0xdddddd, transparent: true, opacity: 0.8 });
         
         const bindBtn = (id, key) => {
             const btn = document.getElementById(id);
@@ -220,7 +232,7 @@
             let angleDeg = Math.atan2(touch.clientY - (rect.top + rect.height/2), touch.clientX - (rect.left + rect.width/2)) * (180 / Math.PI) + 90;
             if (angleDeg > 180) angleDeg -= 360; if (angleDeg > 90) angleDeg = 90; if (angleDeg < -90) angleDeg = -90;
             steeringUI.style.transform = `rotate(${angleDeg}deg)`; 
-            steeringAngle = (angleDeg / 90) * 0.6; // Max steering lock angle
+            steeringAngle = (angleDeg / 90) * 0.6; 
         });
 
         const camArea = document.getElementById('cameraArea');
@@ -238,44 +250,30 @@
 
         const mapCanvas = document.getElementById('minimap'); const ctx = mapCanvas.getContext('2d');
         function updateMinimap() {
-            ctx.clearRect(0, 0, 110, 110); ctx.fillStyle = '#00e5ff'; ctx.beginPath(); ctx.arc(55, 55, 4, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#999';
-            let cx = Math.round(car.position.x / blockSize) * blockSize; let cz = Math.round(car.position.z / blockSize) * blockSize;
-            for (let x = cx - 90; x <= cx + 90; x += blockSize) {
-                for (let z = cz - 90; z <= cz + 90; z += blockSize) {
-                    if (Math.abs(x) > 15 || Math.abs(z) > 15) {
-                        const relX = (x - car.position.x) * 0.3 + 55; const relZ = (z - car.position.z) * 0.3 + 55;
-                        if(relX > 0 && relX < 110 && relZ > 0 && relZ < 110) ctx.fillRect(relX - 4, relZ - 4, 8, 8);
-                    }
-                }
-            }
+            ctx.clearRect(0, 0, 110, 110); ctx.fillStyle = '#00e5ff'; ctx.beginPath(); ctx.arc(55, 55, 4, 0, Math.PI*2); ctx.fill(); 
+            // Simple map dot for now since city is custom
         }
 
         // --- NEW PHYSICS LOOP ---
-        const cameraTarget = new THREE.Vector3(); const carBox = new THREE.Box3();
+        const cameraTarget = new THREE.Vector3(); 
         function animate() {
             requestAnimationFrame(animate);
-            const oldX = car.position.x; const oldZ = car.position.z;
 
             // Vehicle Engine Specs
             const horsepower = 0.02;
-            const brakePower = 0.94; // Strong brakes
-            const wheelbase = 2.8; // Distance between front and rear wheels (Ackermann Steering)
+            const brakePower = 0.94; 
+            const wheelbase = 2.8; 
+            const maxSpeed = 0.9;
             
-            let maxSpeed = 0.9; 
-            if (car.position.x > 100) { maxSpeed = 0.3; smokeMat.color.setHex(0xe6c27a); } // Sand
-            else if (car.position.x < -100) { maxSpeed = 0.4; smokeMat.color.setHex(0x3d8c40); } // Hills
-            else { smokeMat.color.setHex(0x999999); } 
-
-            // Acceleration & Braking
             if (input.gas) speed += horsepower; 
             if (input.rev) speed -= horsepower;
-            if (!input.gas && !input.rev) speed *= 0.98; // Natural coasting friction
-            if (input.rev && speed > 0) speed *= brakePower; // Slamming brakes
+            if (!input.gas && !input.rev) speed *= 0.98; 
+            if (input.rev && speed > 0) speed *= brakePower; 
 
             if (speed > maxSpeed) speed = maxSpeed; 
             if (speed < -maxSpeed / 2) speed = -maxSpeed / 2;
 
-            // ACKERMANN STEERING (Real Car Turning Math)
+            // ACKERMANN STEERING 
             if (Math.abs(speed) > 0.01 && steeringAngle !== 0) {
                 const turnRadius = wheelbase / Math.tan(steeringAngle);
                 car.rotation.y -= (speed / turnRadius);
@@ -284,32 +282,19 @@
             car.position.x += Math.sin(car.rotation.y) * speed; 
             car.position.z += Math.cos(car.rotation.y) * speed;
 
-            // Terrain Tilt
-            car.position.y = getElevation(car.position.x);
-            const frontY = getElevation(car.position.x + Math.sin(car.rotation.y) * 2);
-            const backY = getElevation(car.position.x - Math.sin(car.rotation.y) * 2);
-            const terrainPitch = Math.atan2(frontY - backY, 4); 
+            // Keep car on the ground level
+            car.position.y = 0;
 
-            document.getElementById('speedDisplay').innerText = Math.abs(speed) > 0.01 ? Math.abs(Math.round((speed / 0.9) * 200)) : 0;
+            document.getElementById('speedDisplay').innerText = Math.abs(speed) > 0.01 ? Math.abs(Math.round((speed / maxSpeed) * 200)) : 0;
             updateMinimap();
 
-            // Suspension Body Roll
-            chassis.rotation.z += ((steeringAngle * (speed / 0.9) * 0.2) - chassis.rotation.z) * 0.1;
+            chassis.rotation.z += ((steeringAngle * (speed / maxSpeed) * 0.2) - chassis.rotation.z) * 0.1;
             const enginePitch = (input.gas ? -0.05 : input.rev ? 0.05 : 0);
-            chassis.rotation.x += ((terrainPitch + enginePitch) - chassis.rotation.x) * 0.15;
+            chassis.rotation.x += (enginePitch - chassis.rotation.x) * 0.15;
             
             if (input.horn) { chassis.position.y = Math.random() * 0.05; } else { chassis.position.y = 0; }
 
-            // Collisions
-            carBox.setFromObject(chassis); carBox.expandByScalar(-0.1); 
-            for (let i = 0; i < buildingColliders.length; i++) {
-                if (buildingColliders[i].distanceToPoint(car.position) < 5) {
-                    if (carBox.intersectsBox(buildingColliders[i])) {
-                        car.position.x = oldX - (Math.sin(car.rotation.y) * 0.2); car.position.z = oldZ - (Math.cos(car.rotation.y) * 0.2); speed = 0; break;
-                    }
-                }
-            }
-
+            // Dynamic Camera
             camera.fov = THREE.MathUtils.lerp(camera.fov, 60 + (Math.abs(speed) * 25), 0.1); camera.updateProjectionMatrix();
 
             if ((input.gas || input.rev) && !isDraggingCamera) cameraOrbitAngle *= 0.9; 
