@@ -4,22 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    <title>Ultimate Detailed City</title>
+    <title>Urban Drift RX7</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; }
+        
         #uiTop { position: absolute; top: 15px; left: 15px; width: calc(100% - 30px); display: none; justify-content: space-between; align-items: flex-start; z-index: 60; pointer-events: none; }
         .hud-left { display: flex; flex-direction: column; gap: 10px; }
         #minimap { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #00e5ff; background: rgba(0,10,20,0.8); box-shadow: 0 0 15px rgba(0,229,255,0.4); backdrop-filter: blur(3px); }
         .hud-panel { background: rgba(0, 20, 40, 0.85); border: 2px solid #00e5ff; border-radius: 12px; padding: 5px 15px; color: #fff; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 8px; }
         .hud-panel.gold { border-color: #ffc107; }
         .hud-value { color: #fff; font-family: monospace; font-size: 22px; text-shadow: 0 0 5px currentColor; }
+        
         #cameraArea { position: absolute; top: 0; left: 0; width: 100%; height: 50%; z-index: 10; }
         #controls { position: absolute; bottom: 25px; width: 100%; display: none; justify-content: space-between; align-items: flex-end; padding: 0 30px; box-sizing: border-box; z-index: 50; }
+        
         #steeringArea { width: 150px; height: 150px; position: relative; display: flex; align-items: center; justify-content: center; touch-action: none; }
         #steeringWheel { width: 100%; height: 100%; border-radius: 50%; border: 16px solid #111; box-sizing: border-box; background: transparent; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.7), inset 0 2px 8px rgba(255,255,255,0.1); transition: transform 0.1s; }
         #steeringWheel::before { content: ''; position: absolute; top: 50%; left: -5px; right: -5px; height: 26px; background: #111; transform: translateY(-50%); }
         #steeringWheel::after { content: ''; position: absolute; top: 0; left: 50%; width: 12px; height: 16px; background: #ff3333; transform: translateX(-50%); top: -16px; } 
         .horn-center { position: absolute; width: 50px; height: 50px; background: #222; border-radius: 50%; border: 2px solid #000; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        
         .pedals { display: flex; gap: 15px; position: relative; }
         .btn { width: 75px; height: 75px; border-radius: 12px; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 0 rgba(0,0,0,0.6); user-select: none; border: 2px solid rgba(255,255,255,0.2); }
         .btn:active { transform: translateY(8px); box-shadow: none; }
@@ -27,12 +31,13 @@
         #btnRev { background: linear-gradient(to bottom, #ff512f, #dd2476); }
         #btnHorn { position: absolute; bottom: 120px; right: 0; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(to bottom, #f6d365, #fda085); font-weight: bold; font-size: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 0 #b33900; color: #000; border: 2px solid #fff; }
         #btnHorn:active { transform: translateY(6px); box-shadow: none; }
+
         #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #001122, #000); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        #startBtn { padding: 15px 50px; font-size: 26px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #0072ff); color: #fff; border: none; border-radius: 8px; box-shadow: 0 0 20px rgba(0,229,255,0.4); margin-top: 20px; }
+        #startBtn { padding: 15px 50px; font-size: 20px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #0072ff); color: #fff; border: none; border-radius: 8px; box-shadow: 0 0 20px rgba(0,229,255,0.4); margin-top: 20px; cursor: pointer; transition: 0.3s; }
+        #startBtn:disabled { background: #555; box-shadow: none; color: #888; cursor: not-allowed; }
+        
         #settingsBtn { position: absolute; top: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 2px solid #333; font-size: 22px; display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: auto; }
         #settingsMenu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 30px; border-radius: 15px; border: 3px solid #00e5ff; z-index: 200; text-align: center; color: white; }
-        #installBtn { background: #28a745; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; display: none; }
-        #closeSettings { background: #dc3545; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -47,16 +52,14 @@
     
     <div id="startScreen">
         <h1 style="font-size: 50px; margin: 0; color: #fff; text-shadow: 0 0 20px #00e5ff;">URBAN DRIFT</h1>
-        <p style="color: #aaa; margin-bottom: 30px;">Custom 3D Mazda RX7</p>
-        <button id="startBtn">START ENGINE</button>
+        <p style="color: #aaa; margin-bottom: 30px;">Mazda RX7 Update</p>
+        <button id="startBtn" disabled>LOADING 3D CAR...</button>
     </div>
     
     <div id="settingsBtn">⚙️</div>
     <div id="settingsMenu">
         <h2 style="margin-top:0;">Settings</h2>
-        <button id="installBtn">📲 Install to Phone</button>
-        <p id="manualInstallText" style="font-size: 14px; color: #aaa; background: #222; padding: 10px; border-radius: 8px;">Tap your browser's <b>Menu (⋮)</b><br>and select <b>"Add to Home screen"</b></p>
-        <button id="closeSettings">Close</button>
+        <button id="closeSettings" style="background: #dc3545; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Close</button>
     </div>
 
     <div id="controls">
@@ -69,14 +72,10 @@
     </div>
 
     <script type="module">
-        // IMPORT THREE.JS AND THE GLTF LOADER!
+        // WE ARE NOW IMPORTING THE GLTF LOADER!
         import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
         import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
 
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-        let deferredPrompt; const installBtn = document.getElementById('installBtn');
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'inline-block'; document.getElementById('manualInstallText').style.display = 'none'; });
-        installBtn.addEventListener('click', async () => { if(deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if(outcome === 'accepted') installBtn.style.display = 'none'; deferredPrompt = null; } });
         document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'block');
         document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsMenu').style.display = 'none');
 
@@ -97,14 +96,15 @@
         sunLight.position.set(100, 150, -50); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
         const d = 120; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
-        sunLight.shadow.bias = -0.001; scene.add(sunLight);// --- HIGH DETAIL TEXTURES ---
+        sunLight.shadow.bias = -0.001; scene.add(sunLight);
+        // --- TEXTURES ---
         function createRoadTexture() {
             const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
             const ctx = canvas.getContext('2d'); ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, 512, 512); 
             for(let i=0; i<1500; i++) { ctx.fillStyle = Math.random() > 0.5 ? '#222' : '#111'; ctx.fillRect(Math.random()*512, Math.random()*512, 3, 3); }
             ctx.fillStyle = '#ffffff'; 
             for(let i=100; i<412; i+=60) ctx.fillRect(250, i, 12, 30); 
-            for(let i=20; i<492; i+=40) { ctx.fillRect(i, 10, 20, 40); ctx.fillRect(i, 462, 20, 40); } 
+            for(let i=20; i<492; i+=40) { ctx.fillRect(i, 10, 20, 40); ctx.fillRect(i, 462, 20, 40); }
             const tex = new THREE.CanvasTexture(canvas); tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; tex.magFilter = THREE.NearestFilter; return tex;
         }
         function createWindowTexture() {
@@ -116,43 +116,53 @@
         const roadTexture = createRoadTexture(); roadTexture.repeat.set(40, 40);
         const windowTexture = createWindowTexture(); windowTexture.repeat.set(2, 4);
 
-        // --- NEW: LOADING THE CUSTOM 3D MAZDA RX7 ---
+        // --- NEW: THE CUSTOM 3D MAZDA RX7 ---
         const car = new THREE.Group(); 
         const chassis = new THREE.Group(); 
         car.add(chassis);
 
         const loader = new GLTFLoader();
-        // It looks for scene.gltf in your GitHub repository
+        const startBtn = document.getElementById('startBtn');
+
         loader.load('scene.gltf', function(gltf) {
             const mazda = gltf.scene;
             
-            // 3D Models from the internet are often huge or tiny. Adjust this number if it's the wrong size!
-            mazda.scale.set(0.015, 0.015, 0.015); 
+            // ADJUST THIS SCALE IF THE CAR IS TOO BIG OR SMALL!
+            // 0.01 is usually a good starting point for Sketchfab models.
+            mazda.scale.set(0.012, 0.012, 0.012); 
             
-            // If the car is driving sideways, change this to Math.PI / 2 or -Math.PI / 2
+            // ADJUST THIS IF THE CAR IS DRIVING SIDEWAYS OR BACKWARDS!
             mazda.rotation.y = Math.PI; 
             
-            mazda.position.set(0, 0, 0); // Centers it on the chassis
+            // Centers the model on the chassis
+            mazda.position.set(0, -0.3, 0); 
             
-            // Allow the model to cast shadows
+            // Enable shadows for the 3D model
             mazda.traverse((child) => {
                 if (child.isMesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                 }
             });
+            
             chassis.add(mazda);
+            
+            // UNLOCK THE GAME ONLY WHEN CAR IS READY
+            startBtn.innerText = "START ENGINE";
+            startBtn.disabled = false;
+            
         }, undefined, function(error) {
-            console.error('Error loading the Mazda RX7 model:', error);
+            console.error('Error loading the car:', error);
+            startBtn.innerText = "ERROR LOADING CAR";
         });
 
-        // Add Headlights to the chassis so they still work at night
+        // Add dynamic headlights
+        window.headLightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xddffff, emissiveIntensity: 2 });
         const carLight = new THREE.SpotLight(0xffffee, 2); 
         carLight.position.set(0, 1, 3); carLight.target.position.set(0, 0, 20);
         carLight.angle = Math.PI/4; carLight.penumbra = 0.5; chassis.add(carLight); chassis.add(carLight.target);
 
-        // We make the procedural wheels INVISIBLE. 
-        // We keep them so the steering math doesn't break, but they won't clip into the Mazda's real wheels!
+        // INVISIBLE WHEELS for the physics engine
         const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 8); 
         const wheelMat = new THREE.MeshBasicMaterial({ visible: false }); 
         function createWheel(x, z) {
@@ -162,7 +172,6 @@
         }
         const frontLeftWheel = createWheel(-1.15, 1.4); const frontRightWheel = createWheel(1.15, 1.4);
         createWheel(-1.15, -1.4); createWheel(1.15, -1.4); scene.add(car);
-
 
         // --- MAP ZONES ---
         const cityGround = new THREE.Mesh(new THREE.PlaneGeometry(200, 400), new THREE.MeshLambertMaterial({ map: roadTexture }));
@@ -182,13 +191,6 @@
 
         // --- CITY GENERATOR ---
         const buildingColliders = []; const coins = []; const blockSize = 45; 
-
-        function createTree(x, z) {
-            const tree = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.4, 3), new THREE.MeshLambertMaterial({ color: 0x4e342e })); trunk.position.y = 1.5; tree.add(trunk);
-            const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5, 0), new THREE.MeshLambertMaterial({ color: 0x2e7d32, flatShading: true })); leaves.position.y = 4; leaves.scale.y = 1.5; tree.add(leaves);
-            tree.position.set(x, 0, z); scene.add(tree);
-        }
         
         function createLowPolyBuilding(x, z) {
             const bldgGroup = new THREE.Group();
@@ -198,14 +200,15 @@
             let hitW = 16, hitD = 16;
             if (type === 0) { 
                 const body = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 16), new THREE.MeshLambertMaterial({ color: 0xDEB887 })); body.position.y = 4; body.castShadow = true; bldgGroup.add(body);
+                const awning = new THREE.Mesh(new THREE.BoxGeometry(17, 0.5, 4), new THREE.MeshLambertMaterial({ color: 0x4CAF50 })); awning.position.set(0, 5, 8.5); awning.rotation.x = -Math.PI/6; bldgGroup.add(awning);
             } else if (type === 1) {
                 const height = 25; const body = new THREE.Mesh(new THREE.BoxGeometry(14, height, 14), new THREE.MeshLambertMaterial({ color: 0xe0e0e0 })); body.position.y = height/2; body.castShadow = true; bldgGroup.add(body);
             } else if (type === 2) {
                 const body = new THREE.Mesh(new THREE.BoxGeometry(18, 14, 14), new THREE.MeshLambertMaterial({ color: 0xffffff })); body.position.y = 7; body.castShadow = true; bldgGroup.add(body);
                 hitW = 18;
-            } else if (type === 3) {
-                const body = new THREE.Mesh(new THREE.BoxGeometry(14, 35, 14), new THREE.MeshLambertMaterial({ map: windowTexture })); body.position.y = 17.5; body.castShadow = true; bldgGroup.add(body);
-            } 
+            } else {
+                const body = new THREE.Mesh(new THREE.BoxGeometry(14, 30, 14), new THREE.MeshLambertMaterial({ map: windowTexture })); body.position.y = 15; body.castShadow = true; bldgGroup.add(body);
+            }
 
             bldgGroup.rotation.y = (Math.floor(Math.random() * 4)) * (Math.PI / 2); bldgGroup.position.set(x, 0, z); scene.add(bldgGroup);
             buildingColliders.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x, 5, z), new THREE.Vector3(hitW, 30, hitD)));
@@ -216,16 +219,7 @@
                 if (Math.abs(x) > 15 || Math.abs(z) > 15) createLowPolyBuilding(x, z);
             }
         }
-        for (let x = -180; x <= -110; x += 30) {
-            for (let z = -180; z <= 180; z += 30) {
-                if (Math.random() > 0.4) {
-                    const tree = new THREE.Group();
-                    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 4), new THREE.MeshLambertMaterial({ color: 0x4e342e })); trunk.position.y = 2; tree.add(trunk);
-                    const leaves = new THREE.Mesh(new THREE.ConeGeometry(3, 7, 6), new THREE.MeshLambertMaterial({ color: 0x1b5e20, flatShading: true })); leaves.position.y = 5.5; tree.add(leaves);
-                    tree.position.set(x + Math.random()*10, getElevation(x), z + Math.random()*10); tree.rotation.z = 0.15; scene.add(tree);
-                }
-            }
-        }// --- CONTROLS & LOGIC ---
+        // --- CONTROLS & LOGIC ---
         let speed = 0, score = 0, acceleration = 0.025, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
         let input = { gas: false, rev: false, horn: false }; 
         const particles = []; const smokeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3); const smokeMat = new THREE.MeshBasicMaterial({ color: 0x999999, transparent: true, opacity: 0.8 });
@@ -309,7 +303,9 @@
             const enginePitch = (input.gas ? -0.05 : input.rev ? 0.05 : 0);
             chassis.rotation.x += ((terrainPitch + enginePitch) - chassis.rotation.x) * 0.15;
             
-            // Particle logic
+            if (input.horn) { chassis.position.y = Math.random() * 0.05; window.headLightMat.emissive.setHex(0xffaa00); } 
+            else { chassis.position.y = 0; window.headLightMat.emissive.setHex(0xddffff); }
+
             if (Math.abs(speed) > 0.05 && Math.random() > 0.6 && particles.length < 15) {
                 const smoke = new THREE.Mesh(smokeGeo, smokeMat); 
                 smoke.position.set(car.position.x - Math.sin(car.rotation.y)*2.4, car.position.y + 0.4, car.position.z - Math.cos(car.rotation.y)*2.4);
