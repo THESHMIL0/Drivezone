@@ -95,7 +95,8 @@
         sunLight.position.set(150, 200, -100); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
         const d = 150; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
-        sunLight.shadow.bias = -0.001; scene.add(sunLight);        // --- BASE GROUND ---
+        sunLight.shadow.bias = -0.001; scene.add(sunLight);
+        // --- BASE GROUND ---
         const groundGeo = new THREE.PlaneGeometry(1000, 1000);
         const groundMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
         const ground = new THREE.Mesh(groundGeo, groundMat);
@@ -127,12 +128,26 @@
         loader.load('low-poly_sports_car.glb', function(gltf) {
             const uploadedCar = gltf.scene;
             
-            // CAR TUNING:
+            // ==========================================
+            // 🛠️ THE MECHANIC'S GARAGE: TUNE YOUR CAR! 🛠️
+            // ==========================================
+            
+            // 1. SINKING OR FLOATING? (The Y-Axis)
+            // If tires are underground, change 1.0 to 1.5 or 2.0. 
+            // If it's floating in the sky, lower it to 0.5 or 0.
+            uploadedCar.position.y = 1.0; 
+            
+            // 2. DRIVING SIDEWAYS OR BACKWARDS? (The Rotation)
+            // Change this to: 0, or Math.PI, or -Math.PI / 2
+            uploadedCar.rotation.y = Math.PI / 2; 
+
+            // 3. CAR TOO BIG OR SMALL? (The Scale)
             uploadedCar.scale.set(0.9, 0.9, 0.9); 
-            uploadedCar.position.y = 1.4; 
+
+            // Keep the car centered in the physics engine
             uploadedCar.position.x = 0;
             uploadedCar.position.z = 0;
-            uploadedCar.rotation.y = Math.PI / 2; 
+            // ==========================================
             
             uploadedCar.traverse((child) => {
                 if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; }
@@ -150,13 +165,18 @@
         loader.load('simple_city_free.glb', function(gltf) {
             const uploadedCity = gltf.scene;
             
-            // 🛠️ CITY TUNING: 
-            // If the new city looks too small, increase these to 2.0 or 5.0!
-            // If it is way too big, lower them to 0.5 or 0.1
+            // ==========================================
+            // 🏙️ CITY PLANNER: MOVE THE CITY! 🏙️
+            // ==========================================
             uploadedCity.scale.set(1.0, 1.0, 1.0); 
             
-            // If the roads are underground, lift it up by changing the middle 0 to 1.0 or 2.0
-            uploadedCity.position.set(0, 0, 0); 
+            // DID THE CAR SPAWN INSIDE A BUILDING?
+            // Move the city left/right or forward/backward so the car spawns on a road!
+            uploadedCity.position.x = 0; // Change to 10 or -10 to slide the city sideways
+            uploadedCity.position.z = 0; // Change to 10 or -10 to slide the city forward/back
+            
+            uploadedCity.position.y = 0; // Adjust if the road is too high/low
+            // ==========================================
             
             uploadedCity.traverse((child) => {
                 if (child.isMesh) { child.receiveShadow = true; child.castShadow = true; }
@@ -282,4 +302,3 @@
     </script>
 </body>
 </html>
-
