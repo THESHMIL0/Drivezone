@@ -114,7 +114,7 @@
         const roadTexture = createRoadTexture(); roadTexture.repeat.set(40, 40);
         const windowTexture = createWindowTexture(); windowTexture.repeat.set(2, 4);
 
-        // --- NEW: LOADING THE .GLB MAZDA RX7 ---
+        // --- NEW: MANUAL SCALING GLTF LOADER ---
         const car = new THREE.Group(); 
         const chassis = new THREE.Group(); 
         car.add(chassis);
@@ -122,25 +122,18 @@
         const loader = new GLTFLoader();
         const startBtn = document.getElementById('startBtn');
 
-        // WE CHANGED THIS LINE TO LOAD YOUR .GLB FILE!
         loader.load('mazda_rx7_stylised.glb', function(gltf) {
             const uploadedCar = gltf.scene;
             
-            const box = new THREE.Box3().setFromObject(uploadedCar);
-            const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3());
+            // MANUAL SCALE: This forces the car to be visible. 
+            // If the car is too huge, change 0.015 to 0.005. If it's too small, change it to 0.05!
+            uploadedCar.scale.set(0.015, 0.015, 0.015); 
             
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const targetLength = 4.5;
-            const autoScale = targetLength / maxDim;
-            
-            uploadedCar.scale.set(autoScale, autoScale, autoScale);
-            
-            uploadedCar.position.x = -center.x * autoScale;
-            uploadedCar.position.y = -box.min.y * autoScale; 
-            uploadedCar.position.z = -center.z * autoScale;
-            
+            // This faces the car forward
             uploadedCar.rotation.y = Math.PI; 
+            
+            // This lowers the car so the tires touch the road
+            uploadedCar.position.set(0, -0.4, 0); 
             
             uploadedCar.traverse((child) => {
                 if (child.isMesh) {
@@ -152,12 +145,12 @@
             chassis.add(uploadedCar);
             startBtn.innerText = "START ENGINE";
             startBtn.disabled = false;
-            document.getElementById('loadingText').innerText = "Car successfully loaded!";
+            document.getElementById('loadingText').innerText = "Mazda RX7 loaded perfectly!";
             
         }, undefined, function(error) {
             console.error(error);
-            startBtn.innerText = "FILE ERROR: Check GitHub";
-            document.getElementById('loadingText').innerText = "Make sure mazda_rx7_stylised.glb is in GitHub!";
+            startBtn.innerText = "FILE ERROR: Waiting for GitHub...";
+            document.getElementById('loadingText').innerText = "GitHub is still publishing the file. Please wait 2 mins and refresh!";
         });
 
         window.headLightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xddffff, emissiveIntensity: 2 });
