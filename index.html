@@ -129,18 +129,20 @@
             const uploadedCar = gltf.scene;
             
             // ==========================================
-            // 🚨 SLEDGEHAMMER FIX: LIFTING THE CAR 🚨
+            // 🚨 SLEDGEHAMMER FIX 🚨
             // ==========================================
             uploadedCar.scale.set(0.9, 0.9, 0.9); 
             
-            // I raised this from 1.4 up to 3.0! It should definitely be above ground now.
-            // If it's floating in the sky, you can easily change this to 2.0 or 1.5.
-            uploadedCar.position.y = 3.0; 
+            // LIFTING IT SKY HIGH SO YOU CAN SEE IT!
+            // Once you find the car, slowly lower this 10.0 until it touches the road.
+            uploadedCar.position.y = 10.0; 
             
             uploadedCar.position.x = 0;
             uploadedCar.position.z = 0;
             
-            uploadedCar.rotation.y = Math.PI / 2; 
+            // FIXING THE CAMERA VIEW: This spins it to face away from the camera.
+            // (If you end up staring at the front bumper, change this 0 to Math.PI)
+            uploadedCar.rotation.y = 0; 
             // ==========================================
             
             uploadedCar.traverse((child) => {
@@ -159,18 +161,13 @@
         loader.load('simple_city_free.glb', function(gltf) {
             const uploadedCity = gltf.scene;
             
-            // ==========================================
-            // 🚨 SLEDGEHAMMER FIX: LOWERING THE CITY 🚨
-            // ==========================================
             uploadedCity.scale.set(3.0, 3.0, 3.0); 
             
-            // I dropped the entire city down to -1.0 just in case its roads are too thick!
-            uploadedCity.position.y = -1.0; 
+            // DROPPING THE CITY DEEP UNDERGROUND to help the car stay on top!
+            uploadedCity.position.y = -5.0; 
             
-            // I shifted the city over 15 units so the car spawns directly on a road
             uploadedCity.position.x = 15.0; 
             uploadedCity.position.z = 0; 
-            // ==========================================
             
             uploadedCity.traverse((child) => {
                 if (child.isMesh) { child.receiveShadow = true; child.castShadow = true; }
@@ -286,7 +283,7 @@
             if ((input.gas || input.rev) && !isDraggingCamera) cameraOrbitAngle *= 0.9; 
             const finalCamAngle = car.rotation.y + cameraOrbitAngle;
             
-            // Pulled camera slightly higher and further back to see the car and city better
+            // Camera position is slightly behind and above
             const idealOffset = new THREE.Vector3(car.position.x - Math.sin(finalCamAngle)*14, car.position.y + 8.0, car.position.z - Math.cos(finalCamAngle)*14);
             camera.position.lerp(idealOffset, 0.15); cameraTarget.lerp(car.position, 0.25); camera.lookAt(cameraTarget);
             
