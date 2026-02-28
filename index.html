@@ -96,7 +96,7 @@
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
         const d = 150; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
         sunLight.shadow.bias = -0.001; scene.add(sunLight);
-        // --- BASE GROUND (Just in case the city has holes in the floor) ---
+        // --- BASE GROUND (Prevents falling if city floor has holes) ---
         const groundGeo = new THREE.PlaneGeometry(1000, 1000);
         const groundMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
         const ground = new THREE.Mesh(groundGeo, groundMat);
@@ -128,14 +128,21 @@
         loader.load('low-poly_sports_car.glb', function(gltf) {
             const uploadedCar = gltf.scene;
             
-            // 🛠️ SEARCH AND RESCUE MODE: 
-            // The car is huge (10.0) and floating 5 units in the air so you can spot it!
-            // Once you find it, lower these numbers (like 1.0 or 0.5) and set Y to 0.
-            uploadedCar.scale.set(10.0, 10.0, 10.0); 
-            uploadedCar.position.set(0, 5.0, 0); 
+            // 🛠️ HOW TO TUNE THE CAR:
+            // 1. SIZE: Adjust if it's too big or small
+            uploadedCar.scale.set(1.5, 1.5, 1.5); 
             
-            // If it drives sideways, change Math.PI to: 0, or Math.PI / 2, or -Math.PI / 2
-            uploadedCar.rotation.y = Math.PI; 
+            // 2. HEIGHT (Y-Axis): Lift it out of the ground! 
+            // If tires are still underground, change 1.0 to 1.5 or 2.0.
+            uploadedCar.position.y = 1.0; 
+            
+            // 3. CENTER (X and Z): If the car is offset from the camera
+            uploadedCar.position.x = 0;
+            uploadedCar.position.z = 0;
+            
+            // 4. ROTATION: Fix the direction it faces!
+            // If it drives sideways, change Math.PI/2 to Math.PI, 0, or -Math.PI/2
+            uploadedCar.rotation.y = Math.PI / 2; 
             
             uploadedCar.traverse((child) => {
                 if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; }
