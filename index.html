@@ -96,14 +96,14 @@
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
         const d = 150; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
         sunLight.shadow.bias = -0.001; scene.add(sunLight);
-        // --- BASE GROUND (Just in case the city doesn't have a floor) ---
+        // --- BASE GROUND (Just in case the city has holes in the floor) ---
         const groundGeo = new THREE.PlaneGeometry(1000, 1000);
         const groundMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
         const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; 
+        ground.rotation.x = -Math.PI / 2; ground.position.y = -0.5; ground.receiveShadow = true; 
         scene.add(ground);
 
-        // --- NEW: DUAL AUTO-SCALING LOADER ---
+        // --- CUSTOM LOADERS ---
         const car = new THREE.Group(); 
         const chassis = new THREE.Group(); 
         car.add(chassis);
@@ -113,14 +113,13 @@
         const startBtn = document.getElementById('startBtn');
         const loadingText = document.getElementById('loadingText');
         
-        // We track how many files have successfully loaded
         let filesLoaded = 0; 
         function checkAllLoaded() {
             filesLoaded++;
             if (filesLoaded === 2) {
                 startBtn.innerText = "START ENGINE";
                 startBtn.disabled = false;
-                loadingText.innerText = "City & Car Loaded Successfully!";
+                loadingText.innerText = "City & Car Loaded Perfectly!";
                 loadingText.style.color = "#00ffcc";
             }
         }
@@ -129,22 +128,15 @@
         loader.load('low-poly_sports_car.glb', function(gltf) {
             const uploadedCar = gltf.scene;
             
-            // Auto-scale car to fit our physics engine (4.5 units long)
-            const box = new THREE.Box3().setFromObject(uploadedCar);
-            const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3());
+            // 🛠️ HOW TO FIX THE CAR:
+            // 1. If it's too big/small, change these three numbers (e.g., 0.5, or 2.0)
+            uploadedCar.scale.set(1.0, 1.0, 1.0); 
             
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const autoScale = 4.5 / maxDim;
+            // 2. If it's floating or buried, change the middle number (Y-axis)
+            uploadedCar.position.set(0, 0, 0); 
             
-            uploadedCar.scale.set(autoScale, autoScale, autoScale);
-            
-            // Center it so tires touch ground perfectly
-            uploadedCar.position.x = -center.x * autoScale;
-            uploadedCar.position.y = -box.min.y * autoScale; 
-            uploadedCar.position.z = -center.z * autoScale;
-            
-            uploadedCar.rotation.y = Math.PI; // Face forwards
+            // 3. If it drives sideways, change Math.PI to: 0, or Math.PI / 2, or -Math.PI / 2
+            uploadedCar.rotation.y = Math.PI; 
             
             uploadedCar.traverse((child) => {
                 if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; }
@@ -155,28 +147,19 @@
             
         }, undefined, function(error) {
             console.error(error);
-            loadingText.innerText = "ERROR: Could not find 'low-poly_sports_car.glb'";
-            loadingText.style.color = "#ff3333";
+            loadingText.innerText = "ERROR: Could not load Car"; loadingText.style.color = "#ff3333";
         });
 
         // 2. LOAD THE CUSTOM CITY
         loader.load('low_poly_city.glb', function(gltf) {
             const uploadedCity = gltf.scene;
             
-            // Auto-scale city to be massive (400 units wide)
-            const box = new THREE.Box3().setFromObject(uploadedCity);
-            const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3());
+            // 🛠️ HOW TO FIX THE CITY:
+            // 1. If the city is too small, change these to 5, 10, or 20!
+            uploadedCity.scale.set(3.0, 3.0, 3.0); 
             
-            const maxDim = Math.max(size.x, size.z); // Measure footprint
-            const cityScale = 300 / maxDim; // Make it a big map!
-            
-            uploadedCity.scale.set(cityScale, cityScale, cityScale);
-            
-            // Center the city in the world at Y=0
-            uploadedCity.position.x = -center.x * cityScale;
-            uploadedCity.position.y = -box.min.y * cityScale; 
-            uploadedCity.position.z = -center.z * cityScale;
+            // 2. If the city floor is above your tires, lower it by changing the middle number to -1 or -2
+            uploadedCity.position.set(0, 0, 0); 
             
             uploadedCity.traverse((child) => {
                 if (child.isMesh) { child.receiveShadow = true; child.castShadow = true; }
@@ -187,8 +170,7 @@
             
         }, undefined, function(error) {
             console.error(error);
-            loadingText.innerText = "ERROR: Could not find 'low_poly_city.glb'";
-            loadingText.style.color = "#ff3333";
+            loadingText.innerText = "ERROR: Could not load City"; loadingText.style.color = "#ff3333";
         });
 
         // Car Headlights
@@ -208,7 +190,6 @@
         const frontLeftWheel = createWheel(-1.15, 1.4); const frontRightWheel = createWheel(1.15, 1.4);
         createWheel(-1.15, -1.4); createWheel(1.15, -1.4); 
 
-        // We removed the procedural buildings so you can drive freely inside your custom city!
         const buildingColliders = []; 
         // --- REALISTIC VEHICLE CONTROLLER ---
         let speed = 0, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
