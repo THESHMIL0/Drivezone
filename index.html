@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    <title>Custom 3D City & Car</title>
+    <title>New Simple City</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; }
         
@@ -53,7 +53,7 @@
     <div id="startScreen">
         <h1 style="font-size: 40px; margin: 0; color: #fff; text-shadow: 0 0 20px #00e5ff;">OPEN WORLD</h1>
         <p style="color: #aaa; margin-bottom: 30px;" id="loadingText">Connecting to GitHub...</p>
-        <button id="startBtn" disabled>LOADING WORLD...</button>
+        <button id="startBtn" disabled>LOADING NEW CITY...</button>
     </div>
     
     <div id="settingsBtn">⚙️</div>
@@ -95,8 +95,7 @@
         sunLight.position.set(150, 200, -100); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; 
         const d = 150; sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d; sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
-        sunLight.shadow.bias = -0.001; scene.add(sunLight);
-        // --- BASE GROUND (Prevents falling if city floor has holes) ---
+        sunLight.shadow.bias = -0.001; scene.add(sunLight);        // --- BASE GROUND ---
         const groundGeo = new THREE.PlaneGeometry(1000, 1000);
         const groundMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
         const ground = new THREE.Mesh(groundGeo, groundMat);
@@ -119,7 +118,7 @@
             if (filesLoaded === 2) {
                 startBtn.innerText = "START ENGINE";
                 startBtn.disabled = false;
-                loadingText.innerText = "City & Car Loaded Perfectly!";
+                loadingText.innerText = "New City & Car Ready!";
                 loadingText.style.color = "#00ffcc";
             }
         }
@@ -128,20 +127,11 @@
         loader.load('low-poly_sports_car.glb', function(gltf) {
             const uploadedCar = gltf.scene;
             
-            // 🛠️ HOW TO TUNE THE CAR:
-            // 1. SIZE: Adjust if it's too big or small
-            uploadedCar.scale.set(1.5, 1.5, 1.5); 
-            
-            // 2. HEIGHT (Y-Axis): Lift it out of the ground! 
-            // If tires are still underground, change 1.0 to 1.5 or 2.0.
-            uploadedCar.position.y = 1.0; 
-            
-            // 3. CENTER (X and Z): If the car is offset from the camera
+            // CAR TUNING:
+            uploadedCar.scale.set(0.9, 0.9, 0.9); 
+            uploadedCar.position.y = 1.4; 
             uploadedCar.position.x = 0;
             uploadedCar.position.z = 0;
-            
-            // 4. ROTATION: Fix the direction it faces!
-            // If it drives sideways, change Math.PI/2 to Math.PI, 0, or -Math.PI/2
             uploadedCar.rotation.y = Math.PI / 2; 
             
             uploadedCar.traverse((child) => {
@@ -156,12 +146,16 @@
             loadingText.innerText = "ERROR: Could not load Car"; loadingText.style.color = "#ff3333";
         });
 
-        // 2. LOAD THE CUSTOM CITY
-        loader.load('low_poly_city.glb', function(gltf) {
+        // 2. LOAD THE BRAND NEW CUSTOM CITY!
+        loader.load('simple_city_free.glb', function(gltf) {
             const uploadedCity = gltf.scene;
             
-            // 🛠️ CITY SETTINGS:
-            uploadedCity.scale.set(3.0, 3.0, 3.0); 
+            // 🛠️ CITY TUNING: 
+            // If the new city looks too small, increase these to 2.0 or 5.0!
+            // If it is way too big, lower them to 0.5 or 0.1
+            uploadedCity.scale.set(1.0, 1.0, 1.0); 
+            
+            // If the roads are underground, lift it up by changing the middle 0 to 1.0 or 2.0
             uploadedCity.position.set(0, 0, 0); 
             
             uploadedCity.traverse((child) => {
@@ -173,7 +167,7 @@
             
         }, undefined, function(error) {
             console.error(error);
-            loadingText.innerText = "ERROR: Could not load City"; loadingText.style.color = "#ff3333";
+            loadingText.innerText = "ERROR: Could not find 'simple_city_free.glb'"; loadingText.style.color = "#ff3333";
         });
 
         // Car Headlights
@@ -193,7 +187,6 @@
         const frontLeftWheel = createWheel(-1.15, 1.4); const frontRightWheel = createWheel(1.15, 1.4);
         createWheel(-1.15, -1.4); createWheel(1.15, -1.4); 
 
-        // Removed physical collision boxes so you don't get stuck in the new city
         const buildingColliders = []; 
         // --- REALISTIC VEHICLE CONTROLLER ---
         let speed = 0, steeringAngle = 0, cameraOrbitAngle = 0, isDraggingCamera = false, startDragX = 0;
@@ -289,3 +282,4 @@
     </script>
 </body>
 </html>
+
